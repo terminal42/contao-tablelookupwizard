@@ -101,6 +101,11 @@ class TableLookupWizard extends Widget
 				parent::__set($strKey, $arrFields);
 				break;
 				
+			case 'foreignTable':
+				$this->loadDataContainer($varValue);
+				parent::__set($strKey, $varValue);
+				break;
+				
 			case 'mandatory':
 				$this->arrConfiguration['mandatory'] = $varValue ? true : false;
 				break;
@@ -178,7 +183,7 @@ class TableLookupWizard extends Widget
       		$field = is_numeric($k) ? $v : $k;
       		
       		$strBuffer .= '
-  	  <th class="head_' . $i . ($i==count($this->listFields) ? ' col_last' : '') . '">' . $GLOBALS['TL_LANG'][$this->foreignTable][$field][0] . '</th>';
+  	  <th class="head_' . $i . ($i==count($this->listFields) ? ' col_last' : '') . '">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
       		
       		$i++;
       	}
@@ -262,7 +267,7 @@ window.addEvent('domready', function() {
       				continue;
       				
       			$strResults .= '
-      <td class="col_' . $i . '">' . $value . '</td>';
+      <td class="col_' . $i . '">' . $this->formatValue($this->foreignTable, $field, $value) . '</td>';
       
       			$i++;
       		}
@@ -274,6 +279,113 @@ window.addEvent('domready', function() {
 		}
 		
 		return $strResults;
+	}
+	
+	
+	/**
+	 * Format value (based on DC_Table::show(), Contao 2.9.0)
+	 * @param  mixed
+	 * @param  string
+	 * @param  string
+	 * @return string
+	 */
+	public function formatValue($table, $field, $value)
+	{
+		$value = deserialize($value);
+	
+		// Get field value
+		if (strlen($GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']))
+		{
+			$temp = array();
+			$chunks = explode('.', $GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']);
+
+			foreach ((array) $value as $v)
+			{
+				$objKey = $this->Database->prepare("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id=?")
+										 ->limit(1)
+										 ->execute($v);
+
+				if ($objKey->numRows)
+				{
+					$temp[] = $objKey->value;
+				}
+			}
+
+			return implode(', ', $temp);
+		}
+
+		elseif (is_array($value))
+		{
+			foreach ($value as $kk=>$vv)
+			{
+				if (is_array($vv))
+				{
+					$vals = array_values($vv);
+					$value[$kk] = $vals[0].' ('.$vals[1].')';
+				}
+			}
+
+			return implode(', ', $value);
+		}
+
+		elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'date')
+		{
+			return $this->parseDate($GLOBALS['TL_CONFIG']['dateFormat'], $value);
+		}
+
+		elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'time')
+		{
+			return $this->parseDate($GLOBALS['TL_CONFIG']['timeFormat'], $value);
+		}
+
+		elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'datim' || in_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['flag'], array(5, 6, 7, 8, 9, 10)) || $field == 'tstamp')
+		{
+			return $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $value);
+		}
+
+		elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'checkbox' && !$GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['multiple'])
+		{
+			return strlen($value) ? $GLOBALS['TL_LANG']['MSC']['yes'] : $GLOBALS['TL_LANG']['MSC']['no'];
+		}
+
+		elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'textarea' && ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['allowHtml'] || $GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['preserveTags']))
+		{
+			return specialchars($value);
+		}
+
+		elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference']))
+		{
+			return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
+		}
+		
+		return $value;
+	}
+	
+	
+	/**
+	 * Format label (based on DC_Table::show(), Contao 2.9.0)
+	 * @param  mixed
+	 * @param  string
+	 * @param  string
+	 * @return string
+	 */
+	public function formatLabel($table, $field)
+	{
+		if (count($GLOBALS['TL_DCA'][$table]['fields'][$field]['label']))
+		{
+			$label = is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['label']) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'];
+		}
+		else
+		{
+			$label = is_array($GLOBALS['TL_LANG']['MSC'][$field]) ? $GLOBALS['TL_LANG']['MSC'][$field][0] : $GLOBALS['TL_LANG']['MSC'][$field];
+		}
+
+		if (!strlen($label))
+		{
+			$label = $field;
+		}
+		
+		return $label;
 	}
 }
 

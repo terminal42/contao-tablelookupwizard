@@ -139,13 +139,15 @@ class TableLookupWizard extends Widget
 	public function generate()
 	{
 		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.css';
-		$GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.js';
+		
+		if (!$this->Input->get('noajax'))
+			$GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.js';
 		
 		$this->loadLanguageFile($this->foreignTable);
 		
-		$arrIds = deserialize($this->varValue);
+		$arrIds = deserialize($this->varValue, true);
 		
-		if (!is_array($arrIds) || !count($arrIds))
+		if ($arrIds[0] == '')
 		{
 			$arrIds = array(0);
 		}
@@ -153,7 +155,7 @@ class TableLookupWizard extends Widget
 		// User has javascript disabled an clicked on link
 		if ($this->Input->get('noajax'))
 		{
-			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC, name")->fetchAllAssoc();
+			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
 			$strResults = $this->listResults($arrResults);
 		}
 		else
@@ -194,7 +196,11 @@ class TableLookupWizard extends Widget
   <tbody>
 ' . $strResults . '
   </tbody>
-</table>
+</table>';
+
+		if (!$this->Input->get('noajax'))
+		{
+			$strBuffer .= '
 <script type="text/javascript">
 <!--//--><![CDATA[//><!--' . "
 window.addEvent('domready', function() {
@@ -202,6 +208,7 @@ window.addEvent('domready', function() {
 });
 " . '//--><!]]>
 </script>';
+		}
 
 		return $strBuffer;
 	}
@@ -227,10 +234,15 @@ window.addEvent('domready', function() {
 		if (!count($arrProcedures))
 			return '';
 		
-		$arrData = $this->Input->post($this->strName);
-		if (is_array($arrData) && count($arrData))
+		$varData = $this->Input->post($this->strName);
+		
+		if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData))
 		{
-			$strFilter = ") AND id NOT IN (" . implode(',', $arrData);
+			$strFilter = ") AND id NOT IN (" . implode(',', $varData);
+		}
+		elseif ($this->fieldType == 'radio' && $varData != '')
+		{
+			$strFilter = ") AND (id!='$varData'";
 		}
 		
 		$arrResults = $this->Database->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode(' OR ', $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
@@ -256,9 +268,24 @@ window.addEvent('domready', function() {
 			if (is_array($this->arrIds) && !in_array($row['id'], $this->arrIds))
 				continue;
 				
+			switch( $this->fieldType )
+			{
+				case 'radio':
+					$input = '<input type="radio" class="radio" name="' . $this->strId . '" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
+					break;
+					
+				case 'checkbox':
+					$input = '<input type="checkbox" class="checkbox" name="' . $this->strId . '[]" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
+					break;
+					
+				default:
+					$input = '';
+					break;
+			}
+				
 			$strResults .= '
     <tr class="' . ($c%2 ? 'even' : 'odd') . ($c==0 ? ' row_first' : '') . ($blnAjax ? ' found' : '') . '">
-      <td class="col_0 col_first"><input type="checkbox" class="checkbox" name="' . $this->strId . '[]" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' /></td>';
+      <td class="col_0 col_first">'.$input.'</td>';
       
       		$i = 1;
       		foreach( $row as $field => $value )
@@ -289,7 +316,7 @@ window.addEvent('domready', function() {
 	 * @param  string
 	 * @return string
 	 */
-	public function formatValue($table, $field, $value)
+	protected function formatValue($table, $field, $value)
 	{
 		$value = deserialize($value);
 	
@@ -358,6 +385,11 @@ window.addEvent('domready', function() {
 			return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
 		}
 		
+		elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['options']))
+		{
+			return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
+		}
+		
 		return $value;
 	}
 	
@@ -369,7 +401,7 @@ window.addEvent('domready', function() {
 	 * @param  string
 	 * @return string
 	 */
-	public function formatLabel($table, $field)
+	protected function formatLabel($table, $field)
 	{
 		if (count($GLOBALS['TL_DCA'][$table]['fields'][$field]['label']))
 		{

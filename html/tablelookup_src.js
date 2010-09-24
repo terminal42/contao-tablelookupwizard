@@ -25,7 +25,7 @@
  
 var TableLookupWizard = new Class(
 {
-	Binds: ['send', 'show', 'checked'],
+	Binds: ['send', 'show', 'checked', 'selected'],
 	
 	initialize: function(name)
 	{
@@ -36,7 +36,7 @@ var TableLookupWizard = new Class(
 		
 		$$(('#ctrl_'+name+' tbody tr')).each( function(row)
 		{
-			var check = row.getElement('input[type=checkbox]');
+			var check = row.getElement('input[type=checkbox]') ? row.getElement('input[type=checkbox]') : row.getElement('input[type=radio]');
 			if (check)
 			{
 				check.addEvent('change', function(event)
@@ -73,7 +73,12 @@ var TableLookupWizard = new Class(
 		$$(('#ctrl_'+this.element+' tbody')).adopt(rows);
 		rows.each( function(row)
 		{
-			row.getElement('input[type=checkbox]').addEvent('change', this.checked);
+			if (row.getElement('input[type=checkbox]'))
+				row.getElement('input[type=checkbox]').addEvent('click', this.checked);
+				
+			if (row.getElement('input[type=radio]'))
+				row.getElement('input[type=radio]').addEvent('click', this.selected);
+				
 		}.bind(this));
 	},
 	
@@ -88,6 +93,13 @@ var TableLookupWizard = new Class(
 			event.target.getParent('tr').destroy();
 			$(('ctrl_'+this.element)).send();
 		}
+	},
+	
+	selected: function(event)
+	{
+		event.target.getParent('tr').removeClass('found').inject($$(('#ctrl_'+this.element+' tr.search'))[0], 'before');
+		event.target.getParent('tr').getAllPrevious().destroy();
+		$(('ctrl_'+this.element)).send();
 	}
 });
 

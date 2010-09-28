@@ -228,7 +228,7 @@ window.addEvent('domready', function() {
 				continue;
 				
 			$arrProcedures[] .= implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?';
-			$arrValues += array_fill(0, count($this->searchFields), '%'.$keyword.'%');
+			$arrValues = array_merge($arrValues, array_fill(0, count($this->searchFields), '%'.$keyword.'%'));
 		}
 		
 		if (!count($arrProcedures))

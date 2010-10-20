@@ -122,7 +122,7 @@ class TableLookupWizard extends Widget
 	 */
 	public function validator($varInput)
 	{
-		if ($this->mandatory && (!is_array($varInput) || !count($varInput)))
+		if ($this->mandatory && ((is_array($varInput) && !count($varInput)) || $varInput == ''))
 		{
 			$this->addError(sprintf($GLOBALS['TL_LANG']['ERR']['mandatory'], $this->strLabel));
 		}

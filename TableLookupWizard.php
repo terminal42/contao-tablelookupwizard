@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program. If not, please visit the Free
  * Software Foundation website at <http://www.gnu.org/licenses/>.
@@ -40,7 +40,7 @@ class TableLookupWizard extends Widget
 	 * @var string
 	 */
 	protected $strTemplate = 'be_widget';
-	
+
 	/**
 	 * Allowed row ids
 	 * @var array
@@ -55,18 +55,18 @@ class TableLookupWizard extends Widget
 	public function __construct($arrAttributes=false)
 	{
 		$this->strId = $arrAttributes['id'];
-		
+
 		parent::__construct($arrAttributes);
-		
+
 		$_SESSION['AJAX-FFL'][$this->strId]['type'] = 'tableLookup';
-		
+
 		$this->import('Database');
 	}
-	
-	
+
+
 	/**
 	 * Store config for ajax upload.
-	 * 
+	 *
 	 * @access public
 	 * @param string $strKey
 	 * @param mixed $varValue
@@ -78,13 +78,13 @@ class TableLookupWizard extends Widget
 		{
 			$_SESSION['AJAX-FFL'][$this->strId][$strKey] = $varValue;
 		}
-		
+
 		switch ($strKey)
 		{
 			case 'allowedIds':
 				$this->arrIds = deserialize($varValue);
 				break;
-				
+
 			case 'searchFields':
 				$arrFields = array();
 				foreach( $varValue as $k => $v )
@@ -100,12 +100,12 @@ class TableLookupWizard extends Widget
 				}
 				parent::__set($strKey, $arrFields);
 				break;
-				
+
 			case 'foreignTable':
 				$this->loadDataContainer($varValue);
 				parent::__set($strKey, $varValue);
 				break;
-				
+
 			case 'mandatory':
 				$this->arrConfiguration['mandatory'] = $varValue ? true : false;
 				break;
@@ -115,8 +115,8 @@ class TableLookupWizard extends Widget
 				break;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Validate input and set value
 	 */
@@ -126,12 +126,12 @@ class TableLookupWizard extends Widget
 		{
 			$this->addError(sprintf($GLOBALS['TL_LANG']['ERR']['mandatory'], $this->strLabel));
 		}
-		
+
 		return $varInput;
 	}
 
-	
-	
+
+
 	/**
 	 * Generate the widget and return it as string
 	 * @return string
@@ -139,19 +139,19 @@ class TableLookupWizard extends Widget
 	public function generate()
 	{
 		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.css';
-		
+
 		if (!$this->Input->get('noajax'))
 			$GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.js';
-		
+
 		$this->loadLanguageFile($this->foreignTable);
-		
+
 		$arrIds = deserialize($this->varValue, true);
-		
+
 		if ($arrIds[0] == '')
 		{
 			$arrIds = array(0);
 		}
-				
+
 		// User has javascript disabled an clicked on link
 		if ($this->Input->get('noajax'))
 		{
@@ -162,7 +162,7 @@ class TableLookupWizard extends Widget
 		{
 			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE id IN (" . implode(',', $arrIds) . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))->fetchAllAssoc();
 			$strResults = $this->listResults($arrResults);
-			
+
 			$strResults .= '
     <tr class="jserror">
       <td colspan="' . (count($this->listFields)+1) . '"><a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJavascript'] . '</a></td>
@@ -171,25 +171,25 @@ class TableLookupWizard extends Widget
       <td colspan="' . (count($this->listFields)+1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel=='' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>
     </tr>';
 		}
-		
-		
+
+
 		$strBuffer = '
 <table cellspacing="0" cellpadding="0" id="ctrl_' . $this->strId . '" class="tl_tablelookupwizard" summary="Table data">
   <thead>
     <tr>
       <th class="head_0 col_first">&nbsp;</th>';
-      
+
       	$i = 1;
       	foreach( $this->listFields as $k => $v )
       	{
       		$field = is_numeric($k) ? $v : $k;
-      		
+
       		$strBuffer .= '
   	  <th class="head_' . $i . ($i==count($this->listFields) ? ' col_last' : '') . '">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
-      		
+
       		$i++;
       	}
-      	
+
   	  	$strBuffer .= '
     </tr>
   </thead>
@@ -212,8 +212,8 @@ window.addEvent('domready', function() {
 
 		return $strBuffer;
 	}
-	
-	
+
+
 	public function generateAjax()
 	{
 		$arrKeywords = trimsplit(' ', $this->Input->post('keywords'));
@@ -221,21 +221,21 @@ window.addEvent('domready', function() {
 		$strFilter = '';
 		$arrProcedures = array();
 		$arrValues = array();
-		
+
 		foreach( $arrKeywords as $keyword )
 		{
 			if (!strlen($keyword))
 				continue;
-				
+
 			$arrProcedures[] .= implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?';
 			$arrValues = array_merge($arrValues, array_fill(0, count($this->searchFields), '%'.$keyword.'%'));
 		}
-		
+
 		if (!count($arrProcedures))
 			return '';
-		
+
 		$varData = $this->Input->post($this->strName);
-		
+
 		if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData))
 		{
 			$strFilter = ") AND id NOT IN (" . implode(',', $varData);
@@ -244,71 +244,71 @@ window.addEvent('domready', function() {
 		{
 			$strFilter = ") AND (id!='$varData'";
 		}
-		
+
 		$arrResults = $this->Database->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode(' OR ', $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
 									  ->execute($arrValues)
 									  ->fetchAllAssoc();
-									  
+
 		$strBuffer = $this->listResults($arrResults, true);
-		
+
 		if (!strlen($strBuffer))
 			return '<tr class="found empty"><td colspan="' . (count($this->listFields)+1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], $this->Input->post('keywords')) . '</td></tr>';
-			
+
 		return $strBuffer;
 	}
-	
-	
+
+
 	protected function listResults($arrResults, $blnAjax=false)
 	{
 		$c=0;
 		$strResults = '';
-		
+
 		foreach( $arrResults as $row )
 		{
 			if (is_array($this->arrIds) && !in_array($row['id'], $this->arrIds))
 				continue;
-				
+
 			switch( $this->fieldType )
 			{
 				case 'radio':
 					$input = '<input type="radio" class="radio" name="' . $this->strId . '" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
 					break;
-					
+
 				case 'checkbox':
 					$input = '<input type="checkbox" class="checkbox" name="' . $this->strId . '[]" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
 					break;
-					
+
 				default:
 					$input = '';
 					break;
 			}
-				
+
 			$strResults .= '
     <tr class="' . ($c%2 ? 'even' : 'odd') . ($c==0 ? ' row_first' : '') . ($blnAjax ? ' found' : '') . '">
       <td class="col_0 col_first">'.$input.'</td>';
-      
+
       		$i = 1;
       		foreach( $row as $field => $value )
       		{
       			if ($field == 'id')
       				continue;
-      				
+
       			$strResults .= '
       <td class="col_' . $i . '">' . $this->formatValue($this->foreignTable, $field, $value) . '</td>';
-      
+
       			$i++;
       		}
-      		
+
       		$strResults .= '
     </tr>';
-    		
+
     		$c++;
 		}
-		
+
 		return $strResults;
 	}
-	
-	
+
+
 	/**
 	 * Format value (based on DC_Table::show(), Contao 2.9.0)
 	 * @param  mixed
@@ -319,7 +319,7 @@ window.addEvent('domready', function() {
 	protected function formatValue($table, $field, $value)
 	{
 		$value = deserialize($value);
-	
+
 		// Get field value
 		if (strlen($GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']))
 		{
@@ -384,16 +384,16 @@ window.addEvent('domready', function() {
 		{
 			return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
 		}
-		
+
 		elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['options']))
 		{
 			return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
 		}
-		
+
 		return $value;
 	}
-	
-	
+
+
 	/**
 	 * Format label (based on DC_Table::show(), Contao 2.9.0)
 	 * @param  mixed
@@ -416,7 +416,7 @@ window.addEvent('domready', function() {
 		{
 			$label = $field;
 		}
-		
+
 		return $label;
 	}
 }

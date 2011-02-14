@@ -1,28 +1,31 @@
 <?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
 
 /**
- * TYPOlight Open Source CMS
+ * Contao Open Source CMS
  * Copyright (C) 2005-2010 Leo Feyer
+ *
+ * Formerly known as TYPOlight Open Source CMS.
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program. If not, please visit the Free
  * Software Foundation website at <http://www.gnu.org/licenses/>.
  *
  * PHP version 5
- * @copyright  Winans Creative 2009, Intelligent Spark 2010, iserv.ch GmbH 2010
+ * @copyright  Isotope eCommerce Workgroup 2009-2011
  * @author     Fred Bliss <fred.bliss@intelligentspark.com>
  * @author     Andreas Schempp <andreas@schempp.ch>
  * @license    http://opensource.org/licenses/lgpl-3.0.html
+ * @version    $Id$
  */
 
 
@@ -103,6 +106,7 @@ class TableLookupWizard extends Widget
 
 			case 'foreignTable':
 				$this->loadDataContainer($varValue);
+				$this->loadLanguageFile($varValue);
 				parent::__set($strKey, $varValue);
 				break;
 
@@ -151,12 +155,22 @@ class TableLookupWizard extends Widget
 		{
 			$arrIds = array(0);
 		}
+		
+		$strReset = '';
+		if ($this->fieldType == 'radio')
+		{
+			$strReset = '
+    <tr class="reset">
+      <td><input type="radio" class="radio" name="' . $this->strId . '" id="reset_' . $this->strId . '" value=""' . ($arrIds[0]==0 ? ' checked="checked"' : '') . ' /></td>
+      <td colspan="' . (count($this->listFields)). '"><label for="reset_' . $this->strId . '" class="tl_change_selected">' . $GLOBALS['TL_LANG']['MSC']['resetSelected'] . '</label></td>
+    </tr>';
+		}
 
-		// User has javascript disabled an clicked on link
+		// User has javascript disabled and clicked on link
 		if ($this->Input->get('noajax'))
 		{
 			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
-			$strResults = $this->listResults($arrResults);
+			$strResults = $this->listResults($arrResults) . $strReset;
 		}
 		else
 		{
@@ -166,7 +180,7 @@ class TableLookupWizard extends Widget
 			$strResults .= '
     <tr class="jserror">
       <td colspan="' . (count($this->listFields)+1) . '"><a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJavascript'] . '</a></td>
-    </tr>
+    </tr>' . $strReset . '
     <tr class="search" style="display:none">
       <td colspan="' . (count($this->listFields)+1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel=='' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>
     </tr>';

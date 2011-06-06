@@ -340,19 +340,9 @@ window.addEvent('domready', function() {
 			$temp = array();
 			$chunks = explode('.', $GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']);
 
-			foreach ((array) $value as $v)
-			{
-				$objKey = $this->Database->prepare("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id=?")
-										 ->limit(1)
-										 ->execute($v);
+			$objKey = $this->Database->execute("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id IN (" . implode(',', array_map('intval', (array)$value)) . ")");
 
-				if ($objKey->numRows)
-				{
-					$temp[] = $objKey->value;
-				}
-			}
-
-			return implode(', ', $temp);
+			return implode(', ', $objKey->fetchEach('value'));
 		}
 
 		elseif (is_array($value))

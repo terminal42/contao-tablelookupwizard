@@ -56,7 +56,7 @@ var TableLookupWizard = new Class(
 
 		$(('ctrl_'+name)).set('send',
 		{
-			url: ('ajax.php?action=ffl&id='+name),
+			method: 'get',
 			link: 'cancel',
 			onSuccess: this.show
 		}).addEvent('keyup', this.send);
@@ -65,18 +65,34 @@ var TableLookupWizard = new Class(
 	send: function()
 	{
 		$$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/html/loading.gif)');
-		$(('ctrl_'+this.element)).send();
+		$(('ctrl_'+this.element)).send((window.location.href + '&ajax=tableLookupWizard'));
 	},
 
-	show: function(responseText, responseXML)
+	show: function(text)
 	{
+		var json;
+
+		try
+		{
+			json = JSON.decode(text);
+
+			// Automatically set the new request token
+			if (json.token)
+			{
+				AjaxRequest.updateTokens(json.token);
+			}
+
+			text = json.content;
+		}
+		catch (error){}
+		
 		$$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'none');
 		$$(('#ctrl_'+this.element+' tr.found')).each( function(el)
 		{
 			el.destroy();
 		});
 
-		var rows = Elements.from(responseText, false);
+		var rows = Elements.from(text, false);
 		$$(('#ctrl_'+this.element+' tbody')).adopt(rows);
 		rows.each( function(row)
 		{

@@ -142,6 +142,25 @@ class TableLookupWizard extends Widget
 	 */
 	public function generate()
 	{
+		if ($this->Input->get('ajax') == 'tableLookupWizard')
+		{
+			ob_end_clean();
+			
+			if (version_compare(VERSION, '2.10', '<'))
+			{
+				echo $this->generateAjax();
+			}
+			else
+			{
+				echo json_encode(array
+				(
+					'content'	=> $this->generateAjax(),
+					'token'		=> REQUEST_TOKEN,
+				));
+			}
+			exit;
+		}
+		
 		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.css';
 
 		if (!$this->Input->get('noajax'))
@@ -230,7 +249,7 @@ window.addEvent('domready', function() {
 
 	public function generateAjax()
 	{
-		$arrKeywords = trimsplit(' ', $this->Input->post('keywords'));
+		$arrKeywords = trimsplit(' ', $this->Input->get('keywords'));
 
 		$strFilter = '';
 		$arrProcedures = array();
@@ -248,7 +267,7 @@ window.addEvent('domready', function() {
 		if (!count($arrProcedures))
 			return '';
 
-		$varData = $this->Input->post($this->strName);
+		$varData = $this->Input->get($this->strName);
 
 		if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData))
 		{
@@ -266,7 +285,7 @@ window.addEvent('domready', function() {
 		$strBuffer = $this->listResults($arrResults, true);
 
 		if (!strlen($strBuffer))
-			return '<tr class="found empty"><td colspan="' . (count($this->listFields)+1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], $this->Input->post('keywords')) . '</td></tr>';
+			return '<tr class="found empty"><td colspan="' . (count($this->listFields)+1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], $this->Input->get('keywords')) . '</td></tr>';
 
 		return $strBuffer;
 	}

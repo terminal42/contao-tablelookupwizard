@@ -49,6 +49,11 @@ class TableLookupWizard extends Widget
 	 * @var array
 	 */
 	protected $arrIds = false;
+	
+	/**
+	 * SQL search operator
+	 */
+	protected $strOperator = ' OR ';
 
 
 	/**
@@ -99,6 +104,10 @@ class TableLookupWizard extends Widget
 				$this->loadDataContainer($varValue);
 				$this->loadLanguageFile($varValue);
 				parent::__set($strKey, $varValue);
+				break;
+			
+			case 'matchAllKeywords':
+				$this->strOperator = $varValue ? ' AND ' : ' OR ';
 				break;
 
 			case 'mandatory':
@@ -251,7 +260,7 @@ window.addEvent('domready', function() {
 			if (!strlen($keyword))
 				continue;
 
-			$arrProcedures[] .= implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?';
+			$arrProcedures[] .= '(' . implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?)';
 			$arrValues = array_merge($arrValues, array_fill(0, count($this->searchFields), '%'.$keyword.'%'));
 		}
 
@@ -269,7 +278,7 @@ window.addEvent('domready', function() {
 			$strFilter = ") AND (id!='$varData'";
 		}
 
-		$arrResults = $this->Database->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode(' OR ', $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
+		$arrResults = $this->Database->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
 									  ->execute($arrValues)
 									  ->fetchAllAssoc();
 

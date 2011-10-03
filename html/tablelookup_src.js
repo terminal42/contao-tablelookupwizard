@@ -64,8 +64,11 @@ var TableLookupWizard = new Class(
 
 	send: function()
 	{
-		$$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/html/loading.gif)');
-		$(('ctrl_'+this.element)).send((window.location.href + '&ajax=tableLookupWizard'));
+		clearTimeout(this.timer);
+		this.timer = setTimeout( function() {
+			$$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/html/loading.gif)');
+			$(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
+		}.bind(this), 300);
 	},
 
 	show: function(text)
@@ -85,7 +88,7 @@ var TableLookupWizard = new Class(
 			text = json.content;
 		}
 		catch (error){}
-		
+
 		$$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'none');
 		$$(('#ctrl_'+this.element+' tr.found')).each( function(el)
 		{

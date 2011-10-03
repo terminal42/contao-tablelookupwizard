@@ -52,16 +52,12 @@ class TableLookupWizard extends Widget
 
 
 	/**
-	 * Make sure we know the ID for ajax upload session data
+	 * Construct object and import database
 	 * @param array
 	 */
 	public function __construct($arrAttributes=false)
 	{
-		$this->strId = $arrAttributes['id'];
-
 		parent::__construct($arrAttributes);
-
-		$_SESSION['AJAX-FFL'][$this->strId]['type'] = 'tableLookup';
 
 		$this->import('Database');
 	}
@@ -77,11 +73,6 @@ class TableLookupWizard extends Widget
 	 */
 	public function __set($strKey, $varValue)
 	{
-		if (!is_object($varValue))
-		{
-			$_SESSION['AJAX-FFL'][$this->strId][$strKey] = $varValue;
-		}
-
 		switch ($strKey)
 		{
 			case 'allowedIds':
@@ -142,10 +133,10 @@ class TableLookupWizard extends Widget
 	 */
 	public function generate()
 	{
-		if ($this->Input->get('ajax') == 'tableLookupWizard')
+		if ($this->Input->get('tableLookupWizard') == $this->strId)
 		{
-			ob_end_clean();
-			
+			while(ob_end_clean());
+
 			if (version_compare(VERSION, '2.10', '<'))
 			{
 				echo $this->generateAjax();
@@ -160,7 +151,7 @@ class TableLookupWizard extends Widget
 			}
 			exit;
 		}
-		
+
 		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.css';
 
 		if (!$this->Input->get('noajax'))

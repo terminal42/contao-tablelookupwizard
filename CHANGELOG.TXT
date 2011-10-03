@@ -1,0 +1,10 @@
+====================================
+Contao Extension "tablelookupwizard"
+====================================
+
+Version x.x.x (2011-??-??)
+--------------------------
+- Added support for multiple TableLookupWizards on the same page/DCA (Ticket #527)
+- Added 300ms timeout before sending ajax request for better performance
+- Fixed issues when using multiple output buffers (Ticket #526)
+- Removed unnessesary references to the old ajax implementation

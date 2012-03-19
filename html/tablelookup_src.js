@@ -79,7 +79,7 @@ var TableLookupWizard = new Class(
 			json = JSON.decode(text);
 
 			// Automatically set the new request token
-			if (json.token)
+			if (json.token && AjaxRequest && AjaxRequest.updateTokens)
 			{
 				AjaxRequest.updateTokens(json.token);
 			}

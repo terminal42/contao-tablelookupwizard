@@ -82,9 +82,8 @@ var TableLookupWizard = new Class(
 			if (json.token && AjaxRequest && AjaxRequest.updateTokens)
 			{
 				AjaxRequest.updateTokens(json.token);
+				text = json.content;
 			}
-
-			text = json.content;
 		}
 		catch (error){}
 

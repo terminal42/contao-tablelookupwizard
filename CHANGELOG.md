@@ -2,6 +2,15 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 1.3.2 (2012-04-03)
+--------------------------
+- Fixed javascript error in IE7
+- Wizard did not work with Contao 2.9
+
+Version 1.3.1 (2012-03-19)
+--------------------------
+- Fixed compatibility with Contao 2.11
+
 Version 1.3.0 (2012-01-02)
 --------------------------
 - Added support for multiple TableLookupWizards on the same page/DCA (Ticket #527)

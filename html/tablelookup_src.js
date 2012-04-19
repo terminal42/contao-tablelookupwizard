@@ -32,6 +32,7 @@ var TableLookupWizard = new Class(
 
 	initialize: function(name)
 	{
+		var self = this;
 		this.element = name;
 		this.separator_row = document.getElement('#ctrl_'+this.element+' tr.reset, #ctrl_'+this.element+' tr.search');
 
@@ -48,7 +49,7 @@ var TableLookupWizard = new Class(
 					// Do not destroy reset element (if selected)
 					event.target.getParent('tr').hasClass('reset') ? event.target.getParent('tr').getAllPrevious().destroy() : event.target.getParent('tr').destroy();
 
-					$(('ctrl_'+name)).send();
+					$(('ctrl_'+name)).send((window.location.href + '&tableLookupWizard=' + self.element));
 				});
 			}
 		});
@@ -73,6 +74,7 @@ var TableLookupWizard = new Class(
 	show: function(text)
 	{
 		var json;
+		var text;
 
 		try
 		{
@@ -82,8 +84,9 @@ var TableLookupWizard = new Class(
 			if (json.token && AjaxRequest && AjaxRequest.updateTokens)
 			{
 				AjaxRequest.updateTokens(json.token);
-				text = json.content;
 			}
+			
+			text = json.content;
 		}
 		catch (error){}
 
@@ -115,7 +118,7 @@ var TableLookupWizard = new Class(
 		else
 		{
 			event.target.getParent('tr').destroy();
-			$(('ctrl_'+this.element)).send();
+			$(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
 		}
 	},
 
@@ -123,7 +126,7 @@ var TableLookupWizard = new Class(
 	{
 		event.target.getParent('tr').removeClass('found').inject(this.separator_row, 'before');
 		event.target.getParent('tr').getAllPrevious().destroy();
-		$(('ctrl_'+this.element)).send();
+		$(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
 	}
 });
 

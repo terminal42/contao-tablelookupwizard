@@ -2,6 +2,10 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 1.3.3 (2012-06-28)
+--------------------------
+- Fixed wizard did not update the values correctly
+
 Version 1.3.2 (2012-04-03)
 --------------------------
 - Fixed javascript error in IE7

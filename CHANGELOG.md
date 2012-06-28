@@ -2,7 +2,7 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
-Version 1.3.3 (2012-04-19)
+Version 1.3.3 (2012-06-28)
 --------------------------
 - Fixed wizard did not update the values correctly
 

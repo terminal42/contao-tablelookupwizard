@@ -232,14 +232,16 @@ class TableLookupWizard extends Widget
 
 		if (!$this->Input->get('noajax'))
 		{
-			$strBuffer .= '
-<script type="text/javascript">
-<!--//--><![CDATA[//><!--' . "
-window.addEvent('domready', function() {
-  new TableLookupWizard('" . $this->strId . "');
-});
-" . '//--><!]]>
-</script>';
+			// inject JS in HTML5 style from Contao 2.10
+			$strScriptBegin = (version_compare(VERSION, '2.9', '>') ? '<script>' : '<script type="text/javascript">
+<!--//--><![CDATA[//><!--');
+			$strScriptEnd = (version_compare(VERSION, '2.9', '>') ? '</script>' : '//--><!]]>
+</script>');
+
+			$strBuffer .= $strScriptBegin . '
+window.addEvent(\'domready\', function() {
+  new TableLookupWizard(\'' . $this->strId . '\');
+});' . $strScriptEnd;
 		}
 
 		return $strBuffer;

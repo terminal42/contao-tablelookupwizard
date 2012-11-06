@@ -183,18 +183,39 @@ class TableLookupWizard extends Widget
       <td colspan="' . (count($this->listFields)). '"><label for="reset_' . $this->strId . '" class="tl_change_selected">' . $GLOBALS['TL_LANG']['MSC']['resetSelected'] . '</label></td>
     </tr>';
 		}
-
+		
+		$strWhere = $this->sqlWhere;
+		$strOrder = $this->orderBy;
+		
 		// User has javascript disabled and clicked on link
 		if ($this->Input->get('noajax'))
 		{
-			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
+			strlen($strWhere) && $strWhere = 'WHERE ' . $strWhere;
+			strlen($strOrder) && $strOrder = ', ' . $strOrder;
+			
+			$arrResults = $this->Database->prepare(
+				'SELECT	id, ' . implode(', ', $this->listFields) . '
+				FROM	' . $this->foreignTable . '
+				'. $strWhere . '
+				ORDER BY FIND_IN_SET(id, ?) = 0' . $strOrder
+			)->execute(implode(',', $arrIds))->fetchAllAssoc();
+			
 			$strResults = $this->listResults($arrResults) . $strReset;
 		}
 		else
 		{
-			$arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE id IN (" . implode(',', $arrIds) . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))->fetchAllAssoc();
+			strlen($strWhere) && $strWhere = 'AND ' . $strWhere;
+			strlen($strOrder) && $strOrder = 'ORDER BY ' . $strOrder;
+			
+			$arrResults = $this->Database->execute(
+				'SELECT	id, ' . implode(', ', $this->listFields) . '
+				FROM	' . $this->foreignTable . '
+				WHERE	id IN (' . implode(',', $arrIds) . ')
+				' . $strWhere . '
+				' . $strOrder
+			)->fetchAllAssoc();
+			
 			$strResults = $this->listResults($arrResults);
-
 			$strResults .= '
     <tr class="jserror">
       <td colspan="' . (count($this->listFields)+1) . '"><a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJavascript'] . '</a></td>
@@ -279,10 +300,20 @@ window.addEvent(\'domready\', function() {
 			$strFilter = ") AND (id!='$varData'";
 		}
 
-		$arrResults = $this->Database->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
-									  ->execute($arrValues)
-									  ->fetchAllAssoc();
-
+		$strWhere = $this->sqlWhere;
+		strlen($strWhere) && $strWhere = 'AND ' . $strWhere;
+		
+		$strOrder = $this->orderBy;
+		strlen($strOrder) && $strOrder = 'ORDER BY ' . $strOrder;
+		
+		$arrResults = $this->Database->prepare(
+			'SELECT	id, ' . implode(', ', $this->listFields) . '
+			FROM	' . $this->foreignTable . '
+			WHERE	(' . implode($this->strOperator, $arrProcedures) . $strFilter . ')
+			' . $strWhere . '
+			' . $strOrder
+		)->execute($arrValues)->fetchAllAssoc();
+		
 		$strBuffer = $this->listResults($arrResults, true);
 
 		if (!strlen($strBuffer))

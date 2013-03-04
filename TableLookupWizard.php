@@ -48,7 +48,7 @@ class TableLookupWizard extends Widget
 	 * @var array
 	 */
 	protected $arrIds = false;
-	
+
 	/**
 	 * SQL search operator
 	 */
@@ -104,7 +104,7 @@ class TableLookupWizard extends Widget
 				$this->loadLanguageFile($varValue);
 				parent::__set($strKey, $varValue);
 				break;
-			
+
 			case 'matchAllKeywords':
 				$this->strOperator = $varValue ? ' AND ' : ' OR ';
 				break;
@@ -160,10 +160,11 @@ class TableLookupWizard extends Widget
 			exit;
 		}
 
-		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.css';
+		$GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.min.css';
 
-		if (!$this->Input->get('noajax'))
-			$GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.js';
+		if (!$this->Input->get('noajax')) {
+			$GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.min.js';
+		}
 
 		$this->loadLanguageFile($this->foreignTable);
 

@@ -9,106 +9,86 @@
  */
 
 
-var TableLookupWizard = new Class(
-{
-    Binds: ['send', 'show', 'checked', 'selected'],
+var TableLookupWizard = (function() {
+"use strict";
 
-    initialize: function(name)
+    var timer, widget, href, separator_row;
+
+    var checked = function(event)
     {
-        var self = this;
-        this.element = name;
-        this.separator_row = document.getElement('#ctrl_'+this.element+' tr.reset, #ctrl_'+this.element+' tr.search');
+        if (event.target.checked) {
+            event.target.getParent('tr').removeClass('found').inject(widget.getElement('tr.search'), 'before');
+        } else {
+            event.target.getParent('tr').destroy();
+            widget.send(href);
+        }
+    };
 
-        $$(('#ctrl_'+name+' .jserror')).setStyle('display', 'none');
-        $$(('#ctrl_'+name+' .search')).setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
+    var selected = function(event)
+    {
+        event.target.getParent('tr').removeClass('found').inject(separator_row, 'before');
+        event.target.getParent('tr').getAllPrevious().destroy();
+        widget.send(href);
+    };
 
-        $$(('#ctrl_'+name+' tbody tr')).each( function(row)
-        {
-            var check = row.getElement('input[type=checkbox]') ? row.getElement('input[type=checkbox]') : row.getElement('input[type=radio]');
-            if (check)
-            {
-                check.addEvent('change', function(event)
-                {
+    return function(name) {
+
+        widget = document.id(name);
+        separator_row = widget.getElement('tr.reset, tr.search');
+        href = window.location.href + '&tableLookupWizard=' + name;
+
+        widget.getElement('.jserror').setStyle('display', 'none');
+        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
+
+        widget.getElements('tbody tr').each(function(row) {
+
+            var check = row.getElement('input[type=checkbox]') || row.getElement('input[type=radio]');
+
+            if (check) {
+                check.addEvent('change', function(event) {
+
                     // Do not destroy reset element (if selected)
-                    event.target.getParent('tr').hasClass('reset') ? event.target.getParent('tr').getAllPrevious().destroy() : event.target.getParent('tr').destroy();
+                    if (event.target.getParent('tr').hasClass('reset')) {
+                        event.target.getParent('tr').getAllPrevious().destroy();
+                    } else {
+                        event.target.getParent('tr').destroy();
+                    }
 
-                    $(('ctrl_'+name)).send((window.location.href + '&tableLookupWizard=' + self.element));
+                    widget.send(href);
                 });
             }
         });
 
-        $(('ctrl_'+name)).set('send',
-        {
+        widget.set('send', {
             method: 'get',
             link: 'cancel',
-            onSuccess: this.show
-        }).addEvent('keyup', this.send);
-    },
+            onSuccess: function(text) {
+                var rows;
 
-    send: function()
-    {
-        clearTimeout(this.timer);
-        this.timer = setTimeout( function() {
-            $$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/assets/loading.gif)');
-            $(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
-        }.bind(this), 300);
-    },
+                try {
+                    text = JSON.decode(text).content;
+                } catch (error){}
 
-    show: function(text)
-    {
-        var json;
-        var text;
+                widget.getElements('.search input.tl_text').setStyle('background-image', 'none');
+                widget.getElements('tr.found').destroy();
 
-        try
-        {
-            json = JSON.decode(text);
+                rows = Elements.from(text, false);
+                widget.getElement('tbody').adopt(rows);
+                rows.each(function(row) {
+                    if (row.getElement('input[type=checkbox]'))
+                        row.getElement('input[type=checkbox]').addEvent('click', checked);
 
-            // Automatically set the new request token
-            if (json.token && AjaxRequest && AjaxRequest.updateTokens)
-            {
-                AjaxRequest.updateTokens(json.token);
+                    if (row.getElement('input[type=radio]'))
+                        row.getElement('input[type=radio]').addEvent('click', selected);
+
+                });
             }
-
-            text = json.content;
-        }
-        catch (error){}
-
-        $$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'none');
-        $$(('#ctrl_'+this.element+' tr.found')).each( function(el)
-        {
-            el.destroy();
+        }).addEvent('keyup', function() {
+            clearTimeout(timer);
+            timer = setTimeout(function() {
+                widget.getElement('.search input.tl_text').setStyle('background-image', 'url(system/modules/tablelookupwizard/assets/loading.gif)');
+                widget.send(href);
+            }, 300);
         });
-
-        var rows = Elements.from(text, false);
-        $$(('#ctrl_'+this.element+' tbody')).adopt(rows);
-        rows.each( function(row)
-        {
-            if (row.getElement('input[type=checkbox]'))
-                row.getElement('input[type=checkbox]').addEvent('click', this.checked);
-
-            if (row.getElement('input[type=radio]'))
-                row.getElement('input[type=radio]').addEvent('click', this.selected);
-
-        }.bind(this));
-    },
-
-    checked: function(event)
-    {
-        if (event.target.checked)
-        {
-            event.target.getParent('tr').removeClass('found').inject($$(('#ctrl_'+this.element+' tr.search'))[0], 'before');
-        }
-        else
-        {
-            event.target.getParent('tr').destroy();
-            $(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
-        }
-    },
-
-    selected: function(event)
-    {
-        event.target.getParent('tr').removeClass('found').inject(this.separator_row, 'before');
-        event.target.getParent('tr').getAllPrevious().destroy();
-        $(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
-    }
-});
+    };
+})();

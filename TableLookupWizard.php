@@ -151,10 +151,10 @@ class TableLookupWizard extends Widget
             exit;
         }
 
-        $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/html/tablelookup.min.css';
+        $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';
 
         if (!$this->Input->get('noajax')) {
-            $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/html/tablelookup.min.js';
+            $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
         }
 
         $this->loadLanguageFile($this->foreignTable);

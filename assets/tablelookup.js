@@ -49,7 +49,7 @@ var TableLookupWizard = new Class(
     {
         clearTimeout(this.timer);
         this.timer = setTimeout( function() {
-            $$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/html/loading.gif)');
+            $$(('#ctrl_'+this.element+' .search input.tl_text')).setStyle('background-image', 'url(system/modules/tablelookupwizard/assets/loading.gif)');
             $(('ctrl_'+this.element)).send((window.location.href + '&tableLookupWizard=' + this.element));
         }.bind(this), 300);
     },

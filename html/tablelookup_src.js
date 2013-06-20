@@ -37,7 +37,7 @@ var TableLookupWizard = new Class(
 		this.separator_row = document.getElement('#ctrl_'+this.element+' tr.reset, #ctrl_'+this.element+' tr.search');
 
 		$$(('#ctrl_'+name+' .jserror')).setStyle('display', 'none');
-		$$(('#ctrl_'+name+' .search')).setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
+		$$(('#ctrl_'+name+' .search')).setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.ie && Browser.version < 6)) ? 'block' : 'table-row'));
 
 		$$(('#ctrl_'+name+' tbody tr')).each( function(row)
 		{

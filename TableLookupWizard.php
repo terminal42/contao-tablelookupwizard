@@ -316,7 +316,7 @@ window.addEvent(\'domready\', function() {
               $i = 1;
               foreach( $row as $field => $value )
               {
-                  if ($field == 'id')
+                  if ($field == 'id' && !in_array('id', $this->listFields))
                       continue;
 
                   $strResults .= '

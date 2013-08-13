@@ -12,33 +12,33 @@
 var TableLookupWizard = (function() {
 "use strict";
 
-    var timer, widget, href, separator_row;
-
-    var checked = function(event)
-    {
-        if (event.target.checked) {
-            event.target.getParent('tr').removeClass('found').inject(widget.getElement('tr.search'), 'before');
-        } else {
-            event.target.getParent('tr').destroy();
-            widget.send(href);
-        }
-    };
-
-    var selected = function(event)
-    {
-        event.target.getParent('tr').removeClass('found').inject(separator_row, 'before');
-        event.target.getParent('tr').getAllPrevious().destroy();
-        widget.send(href);
-    };
-
     return function(name) {
+
+        var timer, widget, href, separator_row;
+
+        function checked(event)
+        {
+            if (event.target.checked) {
+                event.target.getParent('tr').removeClass('found').inject(widget.getElement('tr.search'), 'before');
+            } else {
+                event.target.getParent('tr').destroy();
+                widget.send(href);
+            }
+        };
+
+        function selected(event)
+        {
+            event.target.getParent('tr').removeClass('found').inject(separator_row, 'before');
+            event.target.getParent('tr').getAllPrevious().destroy();
+            widget.send(href);
+        };
 
         widget = document.id(name);
         separator_row = widget.getElement('tr.reset, tr.search');
         href = window.location.href + '&tableLookupWizard=' + name;
 
         widget.getElement('.jserror').setStyle('display', 'none');
-        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
+        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine && Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
 
         widget.getElements('tbody tr').each(function(row) {
 

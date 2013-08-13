@@ -33,12 +33,12 @@ var TableLookupWizard = (function() {
 
     return function(name) {
 
-        widget = document.id(name);
+        widget = document.id('ctrl_'+name);
         separator_row = widget.getElement('tr.reset, tr.search');
         href = window.location.href + '&tableLookupWizard=' + name;
 
         widget.getElement('.jserror').setStyle('display', 'none');
-        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
+        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 6)) ? 'block' : 'table-row'));
 
         widget.getElements('tbody tr').each(function(row) {
 
@@ -84,6 +84,11 @@ var TableLookupWizard = (function() {
                 });
             }
         }).addEvent('keyup', function() {
+        	// Fix problem with multiple tableList fields
+	        widget = document.id('ctrl_'+name);
+	        separator_row = widget.getElement('tr.reset, tr.search');
+	        href = window.location.href + '&tableLookupWizard=' + name;
+
             clearTimeout(timer);
             timer = setTimeout(function() {
                 widget.getElement('.search input.tl_text').setStyle('background-image', 'url(system/modules/tablelookupwizard/assets/loading.gif)');

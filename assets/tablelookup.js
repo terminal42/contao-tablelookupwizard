@@ -38,7 +38,7 @@ var TableLookupWizard = (function() {
         href = window.location.href + '&tableLookupWizard=' + name;
 
         widget.getElement('.jserror').setStyle('display', 'none');
-        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 6)) ? 'block' : 'table-row'));
+        widget.getElement('.search').setStyle('display', ((Browser.ie && Browser.version < 6) ? 'block' : 'table-row'));
 
         widget.getElements('tbody tr').each(function(row) {
 

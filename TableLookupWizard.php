@@ -38,18 +38,6 @@ class TableLookupWizard extends Widget
 
 
     /**
-     * Construct object and import database
-     * @param array
-     */
-    public function __construct($arrAttributes = false)
-    {
-        parent::__construct($arrAttributes);
-
-        $this->import('Database');
-    }
-
-
-    /**
      * Store config for ajax upload.
      *
      * @access public

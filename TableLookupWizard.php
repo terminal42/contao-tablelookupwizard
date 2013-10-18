@@ -137,8 +137,6 @@ class TableLookupWizard extends Widget
             $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
         }
 
-        $this->loadLanguageFile($this->foreignTable);
-
         $arrIds = deserialize($this->varValue, true);
 
         if ($arrIds[0] == '') {

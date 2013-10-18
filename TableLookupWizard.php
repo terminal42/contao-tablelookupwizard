@@ -1,22 +1,13 @@
 <?php
 
 /**
- * Isotope eCommerce for Contao Open Source CMS
+ * Extension for Contao Open Source CMS
  *
- * Copyright (C) 2009-2013 Isotope eCommerce Workgroup
+ * Copyright (C) 2013 terminal42 gmbh
  *
  * @package    TableLookupWizard
- * @link       http://www.isotopeecommerce.com
+ * @link       http://www.terminal42.ch
  * @license    http://opensource.org/licenses/lgpl-3.0.html LGPL
- */
-
-
-/**
- * TableLookupWizard implements a Contao widget
- *
- * @copyright  Isotope eCommerce Workgroup 2009-2013
- * @author     Andreas Schempp <andreas.schempp@terminal42.ch>
- * @author     Fred Bliss <fred.bliss@intelligentspark.com>
  */
 
 class TableLookupWizard extends Widget

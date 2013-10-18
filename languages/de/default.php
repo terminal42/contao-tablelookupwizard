@@ -14,5 +14,6 @@
 /**
  * Extension folder
  */
-$GLOBALS['TL_LANG']['MSC']['tlwJavascript']    = 'Bitte aktivieren Sie Javascript in Ihrem Browser. Klicken Sie hier für die alternative Version.';
-$GLOBALS['TL_LANG']['MSC']['tlwNoResults']    = 'Keine (weiteren) Resultate für "%s" gefunden.';
+$GLOBALS['TL_LANG']['MSC']['tlwNoJs']           = 'Bitte aktivieren Sie Javascript in Ihrem Browser.';
+$GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']  = 'Klicken Sie hier für die alternative Version.';
+$GLOBALS['TL_LANG']['MSC']['tlwNoResults']      = 'Keine (weiteren) Resultate für "%s" gefunden.';

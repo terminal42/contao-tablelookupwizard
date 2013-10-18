@@ -33,8 +33,15 @@ class TableLookupWizard extends Widget
 
     /**
      * SQL search operator
+     * @var string
      */
     protected $strOperator = ' OR ';
+
+    /**
+     * Javascript (Ajax) fallback
+     * @var boolean
+     */
+    protected $blnEnableFallback = true;
 
 
     /**
@@ -76,6 +83,10 @@ class TableLookupWizard extends Widget
 
             case 'mandatory':
                 $this->arrConfiguration['mandatory'] = $varValue ? true : false;
+                break;
+
+            case 'disableJavascriptFallback':
+                $this->blnEnableFallback = $varValue ? false : true;
                 break;
 
             default:
@@ -141,7 +152,7 @@ class TableLookupWizard extends Widget
         }
 
         // User has javascript disabled and clicked on link
-        if (\Input::get('noajax')) {
+        if ($this->blnEnableFallback && \Input::get('noajax')) {
             $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
             $strResults = $this->listResults($arrResults) . $strReset;
         } else {
@@ -150,7 +161,14 @@ class TableLookupWizard extends Widget
 
             $strResults .= '
     <tr class="jserror">
-      <td colspan="' . (count($this->listFields) + 1) . '"><a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJavascript'] . '</a></td>
+      <td colspan="' . (count($this->listFields) + 1) . '">
+        <p class="tl_error">' . $GLOBALS['TL_LANG']['MSC']['tlwNoJs'] . '</p>';
+
+            if ($this->blnEnableFallback) {
+                $strResults .= '<a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative'] . '</a>';
+            }
+
+            $strResults .= '</td>
     </tr>' . $strReset . '
     <tr class="search" style="display:none">
       <td colspan="' . (count($this->listFields) + 1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>

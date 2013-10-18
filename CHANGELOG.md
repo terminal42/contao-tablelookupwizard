@@ -2,6 +2,15 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 2.0.0 (2013-??-??)
+--------------------------
+-
+
+
+Version 1.3.5 (2013-08-13)
+--------------------------
+- Contao 3 compat
+
 Version 1.3.4 (2012-09-10)
 --------------------------
 - Fixed wizard did not work correctly with compressed markup

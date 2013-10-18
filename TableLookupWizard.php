@@ -195,16 +195,12 @@ class TableLookupWizard extends Widget
 </table>';
 
         if (!\Input::get('noajax')) {
-            // inject JS in HTML5 style from Contao 2.10
-            $strScriptBegin = (version_compare(VERSION, '2.9', '>') ? '<script>' : '<script type="text/javascript">
-<!--//--><![CDATA[//><!--');
-            $strScriptEnd = (version_compare(VERSION, '2.9', '>') ? '</script>' : '//--><!]]>
-</script>');
-
-            $strBuffer .= $strScriptBegin . '
+            $strBuffer .= '
+<script>
 window.addEvent(\'domready\', function() {
   new TableLookupWizard(\'' . $this->strId . '\');
-});' . $strScriptEnd;
+});
+</script>';
         }
 
         return $strBuffer;

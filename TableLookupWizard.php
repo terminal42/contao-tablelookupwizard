@@ -117,17 +117,17 @@ class TableLookupWizard extends Widget
     public function generate()
     {
         if (\Input::get('tableLookupWizard') == $this->strId) {
-            while (ob_end_clean()) ;
+            while (ob_end_clean());
+            $strBuffer = $this->generateAjax();
 
-            if (version_compare(VERSION, '2.10', '<')) {
-                echo $this->generateAjax();
-            } else {
-                echo json_encode(array
-                (
-                    'content' => $this->generateAjax(),
-                    'token' => REQUEST_TOKEN,
-                ));
-            }
+            header('Content-Type: application/json; charset=' . $GLOBALS['TL_CONFIG']['characterSet']);
+            header('Content-Length: ' . strlen($strBuffer));
+
+            echo json_encode(array
+            (
+                'content'   => $strBuffer,
+                'token'     => REQUEST_TOKEN,
+            ));
             exit;
         }
 

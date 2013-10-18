@@ -83,7 +83,7 @@ class TableLookupWizard extends Widget
 
             case 'foreignTable':
                 $this->loadDataContainer($varValue);
-                $this->loadLanguageFile($varValue);
+                \System::loadLanguageFile($varValue);
                 parent::__set($strKey, $varValue);
                 break;
 
@@ -123,7 +123,7 @@ class TableLookupWizard extends Widget
      */
     public function generate()
     {
-        if ($this->Input->get('tableLookupWizard') == $this->strId)
+        if (\Input::get('tableLookupWizard') == $this->strId)
         {
             while(ob_end_clean());
 
@@ -144,7 +144,7 @@ class TableLookupWizard extends Widget
 
         $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';
 
-        if (!$this->Input->get('noajax')) {
+        if (!\Input::get('noajax')) {
             $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
         }
 
@@ -168,7 +168,7 @@ class TableLookupWizard extends Widget
         }
 
         // User has javascript disabled and clicked on link
-        if ($this->Input->get('noajax'))
+        if (\Input::get('noajax'))
         {
             $arrResults = $this->Database->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
             $strResults = $this->listResults($arrResults) . $strReset;
@@ -213,7 +213,7 @@ class TableLookupWizard extends Widget
   </tbody>
 </table>';
 
-        if (!$this->Input->get('noajax'))
+        if (!\Input::get('noajax'))
         {
             // inject JS in HTML5 style from Contao 2.10
             $strScriptBegin = (version_compare(VERSION, '2.9', '>') ? '<script>' : '<script type="text/javascript">
@@ -233,7 +233,7 @@ window.addEvent(\'domready\', function() {
 
     public function generateAjax()
     {
-        $arrKeywords = trimsplit(' ', $this->Input->get('keywords'));
+        $arrKeywords = trimsplit(' ', \Input::get('keywords'));
 
         $strFilter = '';
         $arrProcedures = array();
@@ -251,7 +251,7 @@ window.addEvent(\'domready\', function() {
         if (!count($arrProcedures))
             return '';
 
-        $varData = $this->Input->get($this->strName);
+        $varData = \Input::get($this->strName);
 
         if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData))
         {
@@ -269,7 +269,7 @@ window.addEvent(\'domready\', function() {
         $strBuffer = $this->listResults($arrResults, true);
 
         if (!strlen($strBuffer))
-            return '<tr class="found empty"><td colspan="' . (count($this->listFields)+1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], $this->Input->get('keywords')) . '</td></tr>';
+            return '<tr class="found empty"><td colspan="' . (count($this->listFields)+1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
 
         return $strBuffer;
     }

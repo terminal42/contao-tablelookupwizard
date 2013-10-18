@@ -308,7 +308,6 @@ window.addEvent(\'domready\', function() {
 
         // Get field value
         if (strlen($GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey'])) {
-            $temp = array();
             $chunks = explode('.', $GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']);
 
             $objKey = \Database::getInstance()->execute("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id IN (" . implode(',', array_map('intval', (array)$value)) . ")");
@@ -324,11 +323,11 @@ window.addEvent(\'domready\', function() {
 
             return implode(', ', $value);
         } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'date') {
-            return $this->parseDate($GLOBALS['TL_CONFIG']['dateFormat'], $value);
+            return \Date::parse($GLOBALS['TL_CONFIG']['dateFormat'], $value);
         } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'time') {
-            return $this->parseDate($GLOBALS['TL_CONFIG']['timeFormat'], $value);
+            return \Date::parse($GLOBALS['TL_CONFIG']['timeFormat'], $value);
         } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'datim' || in_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['flag'], array(5, 6, 7, 8, 9, 10)) || $field == 'tstamp') {
-            return $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $value);
+            return \Date::parse($GLOBALS['TL_CONFIG']['datimFormat'], $value);
         } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'checkbox' && !$GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['multiple']) {
             return strlen($value) ? $GLOBALS['TL_LANG']['MSC']['yes'] : $GLOBALS['TL_LANG']['MSC']['no'];
         } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'textarea' && ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['allowHtml'] || $GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['preserveTags'])) {

@@ -177,17 +177,17 @@ class TableLookupWizard extends Widget
 
 
         $strBuffer = '
-<table cellspacing="0" cellpadding="0" id="ctrl_' . $this->strId . '" class="tl_tablelookupwizard" summary="Table data">
+<table cellspacing="0" cellpadding="0" id="ctrl_' . $this->strId . '" class="tl_tablelookupwizard tl_listing" summary="Table data">
   <thead>
     <tr>
-      <th class="head_0 col_first">&nbsp;</th>';
+      <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>';
 
         $i = 1;
         foreach ($this->listFields as $k => $v) {
             $field = is_numeric($k) ? $v : $k;
 
             $strBuffer .= '
-        <th class="head_' . $i . ($i == count($this->listFields) ? ' col_last' : '') . '">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
+        <th class="head_' . $i . ($i == count($this->listFields) ? ' col_last' : '') . ' tl_folder_tlist">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
 
             $i++;
         }

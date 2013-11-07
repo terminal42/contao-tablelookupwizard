@@ -33,7 +33,7 @@ var TableLookupWizard = (function() {
             widget.send(href);
         };
 
-        widget = document.id(name);
+        widget = document.id('ctrl_' + name);
         separator_row = widget.getElement('tr.reset, tr.search');
         href = window.location.href + '&tableLookupWizard=' + name;
 

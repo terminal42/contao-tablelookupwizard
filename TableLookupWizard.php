@@ -118,15 +118,15 @@ class TableLookupWizard extends Widget
         if (\Input::get('tableLookupWizard') == $this->strId) {
             while (ob_end_clean());
             $strBuffer = $this->generateAjax();
-
-            header('Content-Type: application/json; charset=' . $GLOBALS['TL_CONFIG']['characterSet']);
-            header('Content-Length: ' . strlen($strBuffer));
-
-            echo json_encode(array
+            $strBuffer = json_encode(array
             (
                 'content'   => $strBuffer,
                 'token'     => REQUEST_TOKEN,
             ));
+
+            header('Content-Type: application/json; charset=' . $GLOBALS['TL_CONFIG']['characterSet']);
+            header('Content-Length: ' . strlen($strBuffer));
+            echo $strBuffer;
             exit;
         }
 

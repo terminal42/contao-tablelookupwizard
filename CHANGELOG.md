@@ -2,9 +2,16 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
-Version 2.0.0 (2013-??-??)
+Version 2.0.1 (2013-11-18)
 --------------------------
--
+- Fixed Content-Length header was not calculated correctly
+
+
+Version 2.0.0 (2013-11-07)
+--------------------------
+- Compatibility with 3.2 only (thus removed legacy code)
+- JavaScript fallback can now be disabled
+- Improved wizard styling
 
 
 Version 1.3.5 (2013-08-13)

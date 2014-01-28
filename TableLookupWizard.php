@@ -218,10 +218,24 @@ window.addEvent(\'domready\', function() {
         $arrKeywords = trimsplit(' ', \Input::get('keywords'));
 
         $strFilter = '';
-        $arrProcedures = array();
+		$stmt = array();
+        $arrJoins = array();
+		$arrProcedures = array();
         $arrValues = array();
 
-        foreach ($arrKeywords as $keyword) {
+		// Handle joins
+		if (is_array($this->joins))
+		{
+			foreach ($this->joins as $k => $v)
+			{
+				$k = (is_numeric($k) ? ('j_' . $k) : $k);
+				$arrJoins[] = sprintf("LEFT JOIN %s AS %s ON %s.%s = %s.%s", $v['table'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+			}
+		}
+
+		// Handle 
+        foreach ($arrKeywords as $keyword)
+        {
             if (!strlen($keyword))
                 continue;
 
@@ -234,15 +248,42 @@ window.addEvent(\'domready\', function() {
 
         $varData = \Input::get($this->strName);
 
-        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
-            $strFilter = ") AND id NOT IN (" . implode(',', $varData);
-        } elseif ($this->fieldType == 'radio' && $varData != '') {
-            $strFilter = ") AND (id!='$varData'";
+        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData))
+        {
+            $strFilter = ") AND {$this->foreignTable}.id NOT IN (" . implode(',', $varData);
+        }
+        elseif ($this->fieldType == 'radio' && $varData != '')
+        {
+            $strFilter = ") AND ({$this->foreignTable}.id!='$varData'";
         }
 
-        $arrResults = \Database::getInstance()->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
-            ->execute($arrValues)
-            ->fetchAllAssoc();
+		// Build sql statement
+		$stmt[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->listFields);
+		$stmt[] = "FROM {$this->foreignTable}";
+
+		// If there are some joins, add them to the statement
+		if (count($arrJoins) > 0)
+		{
+			$stmt[] = implode(' ', $arrJoins);
+		}
+
+		// Add where to statement
+		$stmt[] = "WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")";
+
+		// If sqlWhere is set, add it to the statement
+		if (strlen($this->sqlWhere))
+		{
+			$stmt[] = "AND {$this->sqlWhere}";
+		}
+
+		// If sqlGroupBy is set, add it to the statement
+		if (strlen($this->sqlGroupBy))
+		{
+			$stmt[] = "GROUP BY {$this->sqlGroupBy}";
+		}
+
+		// Get results
+        $arrResults = \Database::getInstance()->prepare(implode(' ', $stmt))->execute($arrValues)->fetchAllAssoc();
 
         $strBuffer = $this->listResults($arrResults, true);
 

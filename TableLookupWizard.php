@@ -385,6 +385,20 @@ window.addEvent(\'domready\', function() {
             return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
         }
 
+		// Call the list_value_callback ($value, $field)
+		if (is_array($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']))
+		{
+			$strClass = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][0];
+			$strMethod = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][1];
+
+			$this->import($strClass);
+			$value = $this->$strClass->$strMethod($value, $field);
+		}
+		elseif (is_callable($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']))
+		{
+			$value = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']($value, $field);
+		}
+
         return $value;
     }
 

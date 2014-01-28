@@ -218,9 +218,20 @@ window.addEvent(\'domready\', function() {
         $arrKeywords = trimsplit(' ', \Input::get('keywords'));
 
         $strFilter = '';
+        $stmt = array();
+        $arrJoins = array();
         $arrProcedures = array();
         $arrValues = array();
 
+        // Handle joins
+        if (is_array($this->joins)) {
+            foreach ($this->joins as $k => $v) {
+                $k = (is_numeric($k) ? ('j_' . $k) : $k);
+                $arrJoins[] = sprintf("LEFT JOIN %s AS %s ON %s.%s = %s.%s", $v['table'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+            }
+        }
+
+        // Handle keywords
         foreach ($arrKeywords as $keyword) {
             if (!strlen($keyword))
                 continue;
@@ -235,14 +246,35 @@ window.addEvent(\'domready\', function() {
         $varData = \Input::get($this->strName);
 
         if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
-            $strFilter = ") AND id NOT IN (" . implode(',', $varData);
+            $strFilter = ") AND {$this->foreignTable}.id NOT IN (" . implode(',', $varData);
         } elseif ($this->fieldType == 'radio' && $varData != '') {
-            $strFilter = ") AND (id!='$varData'";
+            $strFilter = ") AND ({$this->foreignTable}.id!='$varData'";
         }
 
-        $arrResults = \Database::getInstance()->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
-            ->execute($arrValues)
-            ->fetchAllAssoc();
+        // Build sql statement
+        $stmt[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->listFields);
+        $stmt[] = "FROM {$this->foreignTable}";
+
+        // If there are some joins, add them to the statement
+        if (count($arrJoins) > 0) {
+            $stmt[] = implode(' ', $arrJoins);
+        }
+
+        // Add where to statement
+        $stmt[] = "WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")";
+
+        // If sqlWhere is set, add it to the statement
+        if (strlen($this->sqlWhere)) {
+            $stmt[] = "AND {$this->sqlWhere}";
+        }
+
+        // If sqlGroupBy is set, add it to the statement
+        if (strlen($this->sqlGroupBy)) {
+            $stmt[] = "GROUP BY {$this->sqlGroupBy}";
+        }
+
+        // Get results
+        $arrResults = \Database::getInstance()->prepare(implode(' ', $stmt))->execute($arrValues)->fetchAllAssoc();
 
         $strBuffer = $this->listResults($arrResults, true);
 
@@ -342,6 +374,18 @@ window.addEvent(\'domready\', function() {
             return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
         } elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'])) {
             return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
+        }
+
+        // Call the list_value_callback ($value, $field)
+        if (is_array($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
+            $strClass = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][0];
+            $strMethod = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][1];
+
+            $this->import($strClass);
+            $value = $this->$strClass->$strMethod($value, $field);
+        }
+        elseif (is_callable($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
+            $value = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']($value, $field);
         }
 
         return $value;

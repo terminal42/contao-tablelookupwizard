@@ -2,6 +2,13 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 2.?.? (2014-??-??)
+--------------------------
+- Added joins and groupby support
+- Added list_value_callback
+- Improved sql statements
+
+
 Version 2.0.1 (2013-11-18)
 --------------------------
 - Fixed Content-Length header was not calculated correctly

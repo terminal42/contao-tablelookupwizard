@@ -229,7 +229,7 @@ class TableLookupWizard extends Widget
             $field = is_numeric($k) ? $v : $k;
 
             $strBuffer .= '
-        <th class="head_' . $i . ($i == count($this->arrListFields) ? ' col_last' : '') . ' tl_folder_tlist">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
+        <th class="head_' . $i . ($i == count($this->arrListFields) ? ' col_last' : '') . ' tl_folder_tlist">' . \Haste\Uil\Format::dcaLabel($this->foreignTable, $field) . '</th>';
 
             $i++;
         }
@@ -449,28 +449,5 @@ window.addEvent(\'domready\', function() {
         }
 
         return $value;
-    }
-
-
-    /**
-     * Format label (based on DC_Table::show(), Contao 2.9.0)
-     * @param  mixed
-     * @param  string
-     * @param  string
-     * @return string
-     */
-    protected function formatLabel($table, $field)
-    {
-        if (count($GLOBALS['TL_DCA'][$table]['fields'][$field]['label'])) {
-            $label = is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['label']) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'];
-        } else {
-            $label = is_array($GLOBALS['TL_LANG']['MSC'][$field]) ? $GLOBALS['TL_LANG']['MSC'][$field][0] : $GLOBALS['TL_LANG']['MSC'][$field];
-        }
-
-        if (!strlen($label)) {
-            $label = $field;
-        }
-
-        return $label;
     }
 }

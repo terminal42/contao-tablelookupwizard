@@ -43,6 +43,24 @@ class TableLookupWizard extends Widget
      */
     protected $blnEnableFallback = true;
 
+    /**
+     * JOIN statements
+     * @var array
+     */
+    protected $arrJoins = array();
+
+    /**
+     * Query Procedure
+     * @var array
+     */
+    protected $arrQueryProcedure = array();
+
+    /**
+     * Query Values
+     * @var array
+     */
+    protected $arrQueryValues = array();
+
 
     /**
      * Store config for ajax upload.
@@ -87,6 +105,10 @@ class TableLookupWizard extends Widget
 
             case 'disableJavascriptFallback':
                 $this->blnEnableFallback = $varValue ? false : true;
+                break;
+
+            case 'joins':
+                $this->arrJoins = $varValue;
                 break;
 
             default:
@@ -215,75 +237,88 @@ window.addEvent(\'domready\', function() {
 
     public function generateAjax()
     {
-        $arrKeywords = trimsplit(' ', \Input::get('keywords'));
+        // Prepare query
+        $this->prepareQuery();
 
-        $strFilter = '';
-        $stmt = array();
-        $arrJoins = array();
-        $arrProcedures = array();
-        $arrValues = array();
-
-        // Handle joins
-        if (is_array($this->joins)) {
-            foreach ($this->joins as $k => $v) {
-                $k = (is_numeric($k) ? ('j_' . $k) : $k);
-                $arrJoins[] = sprintf("LEFT JOIN %s AS %s ON %s.%s = %s.%s", $v['table'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
-            }
-        }
-
-        // Handle keywords
-        foreach ($arrKeywords as $keyword) {
-            if (!strlen($keyword))
-                continue;
-
-            $arrProcedures[] .= '(' . implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?)';
-            $arrValues = array_merge($arrValues, array_fill(0, count($this->searchFields), '%' . $keyword . '%'));
-        }
-
-        if (!count($arrProcedures))
-            return '';
-
-        $varData = \Input::get($this->strName);
-
-        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
-            $strFilter = ") AND {$this->foreignTable}.id NOT IN (" . implode(',', $varData);
-        } elseif ($this->fieldType == 'radio' && $varData != '') {
-            $strFilter = ") AND ({$this->foreignTable}.id!='$varData'";
-        }
-
-        // Build sql statement
-        $stmt[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->listFields);
-        $stmt[] = "FROM {$this->foreignTable}";
-
-        // If there are some joins, add them to the statement
-        if (count($arrJoins) > 0) {
-            $stmt[] = implode(' ', $arrJoins);
-        }
-
-        // Add where to statement
-        $stmt[] = "WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")";
-
-        // If sqlWhere is set, add it to the statement
-        if (strlen($this->sqlWhere)) {
-            $stmt[] = "AND {$this->sqlWhere}";
-        }
-
-        // If sqlGroupBy is set, add it to the statement
-        if (strlen($this->sqlGroupBy)) {
-            $stmt[] = "GROUP BY {$this->sqlGroupBy}";
-        }
+        $strProcedure = implode(' ', $this->arrQueryProcedure);
 
         // Get results
-        $arrResults = \Database::getInstance()->prepare(implode(' ', $stmt))->execute($arrValues)->fetchAllAssoc();
+        $arrResults = \Database::getInstance()
+            ->prepare($strProcedure)
+            ->execute($this->arrQueryValues)
+            ->fetchAllAssoc();
 
         $strBuffer = $this->listResults($arrResults, true);
 
+        // @todo !==
         if (!strlen($strBuffer))
             return '<tr class="found empty"><td colspan="' . (count($this->listFields) + 1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
 
         return $strBuffer;
     }
 
+    /**
+     * Prepares the SQL Query
+     */
+    protected function prepareQuery()
+    {
+        // Build SQL statement
+        $this->arrQueryProcedure[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->listFields);
+        $this->arrQueryProcedure[] = "FROM {$this->foreignTable}";
+
+        // Handle joins
+        if (!empty($this->arrJoins)) {
+            foreach ($this->arrJoins as $k => $v) {
+                $k = (is_numeric($k) ? ('j_' . $k) : $k);
+                $this->arrQueryProcedure[] = sprintf("LEFT JOIN %s AS %s ON %s.%s = %s.%s", $v['table'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+            }
+        }
+
+        // Prepare WHERE
+        $this->prepareWhere();
+
+        // If custom GROUP BY is set, add it to the statement
+        if ($this->sqlGroupBy) {
+            $this->arrQueryProcedure[] = "GROUP BY {$this->sqlGroupBy}";
+        }
+    }
+
+    protected function prepareWhere()
+    {
+        $arrKeywords        = trimsplit(' ', \Input::get('keywords'));
+        $varData            = \Input::get($this->strName);
+        $arrWhereProcedure  = array();
+        $arrWhereValues     = array();
+
+        // Handle keywords
+        foreach ($arrKeywords as $strKeyword) {
+            if (!$strKeyword)
+                continue;
+
+            // @todo fix alias
+            $arrWhereProcedure[]  = '(' . implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?)';
+            $arrWhereValues       = array_merge($arrWhereValues, array_fill(0, count($this->searchFields), '%' . $strKeyword . '%'));
+        }
+
+        // Filter those that have already been chosen
+        // @todo !emtpy()
+        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
+            $arrWhereProcedure[] = ") AND {$this->foreignTable}.id NOT IN (" . implode(',', $varData);
+        } elseif ($this->fieldType == 'radio' && $varData != '') {
+            $arrWhereProcedure[] = ") AND ({$this->foreignTable}.id!='$varData'";
+        }
+
+        // If custom WHERE is set, add it to the statement
+        if ($this->sqlWhere !== '') {
+            $arrWhereProcedure[] = "AND {$this->sqlWhere}";
+        }
+
+        if (!empty($arrWhereProcedure)) {
+            $this->arrQueryProcedure[]  = 'WHERE';
+            $this->arrQueryProcedure    = array_merge($this->arrQueryProcedure, $arrWhereProcedure);
+            $this->arrQueryValues       = array_merge($this->arrQueryValues, $arrWhereValues);
+        }
+    }
 
     protected function listResults($arrResults, $blnAjax = false)
     {

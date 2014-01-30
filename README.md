@@ -32,6 +32,9 @@ How to use:
             // Defines the join alias
             'join_table' => array
             (
+                // Join type (e.g. INNER JOIN, LEFT JOIN, RIGHT JOIN)
+                'type' => 'LEFT JOIN',
+
                 // Join table
                 'table' => 'tl_my_superb_join_table',
 

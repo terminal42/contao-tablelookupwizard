@@ -289,7 +289,7 @@ window.addEvent(\'domready\', function() {
         if (!empty($this->arrJoins)) {
             foreach ($this->arrJoins as $k => $v) {
                 $k = (is_numeric($k) ? ('j_' . $k) : $k);
-                $this->arrQueryProcedure[] = sprintf("LEFT JOIN %s AS %s ON %s.%s = %s.%s", $v['table'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+                $this->arrQueryProcedure[] = sprintf("%s %s AS %s ON %s.%s = %s.%s", $v['table'], $v['type'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
             }
         }
 

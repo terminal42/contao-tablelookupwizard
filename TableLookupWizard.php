@@ -381,7 +381,7 @@ window.addEvent(\'domready\', function() {
                     continue;
 
                 $strResults .= '
-      <td class="col_' . $i . '">' . $this->formatValue($this->foreignTable, $field, $value) . '</td>';
+      <td class="col_' . $i . '">' . \Haste\Util\Format::dcaValue($this->foreignTable, $field, $value) . '</td>';
 
                 $i++;
             }
@@ -393,61 +393,5 @@ window.addEvent(\'domready\', function() {
         }
 
         return $strResults;
-    }
-
-
-    /**
-     * Format value (based on DC_Table::show(), Contao 2.9.0)
-     * @param  mixed
-     * @param  string
-     * @param  string
-     * @return string
-     */
-    protected function formatValue($table, $field, $value)
-    {
-        $value = deserialize($value);
-
-        // Get field value
-        if (strlen($GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey'])) {
-            $chunks = explode('.', $GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']);
-
-            $objKey = \Database::getInstance()->execute("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id IN (" . implode(',', array_map('intval', (array)$value)) . ")");
-
-            return implode(', ', $objKey->fetchEach('value'));
-        } elseif (is_array($value)) {
-            foreach ($value as $kk => $vv) {
-                if (is_array($vv)) {
-                    $vals = array_values($vv);
-                    $value[$kk] = $vals[0] . ' (' . $vals[1] . ')';
-                }
-            }
-
-            return implode(', ', $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'date') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['dateFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'time') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['timeFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'datim' || in_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['flag'], array(5, 6, 7, 8, 9, 10)) || $field == 'tstamp') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['datimFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'checkbox' && !$GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['multiple']) {
-            return strlen($value) ? $GLOBALS['TL_LANG']['MSC']['yes'] : $GLOBALS['TL_LANG']['MSC']['no'];
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'textarea' && ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['allowHtml'] || $GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['preserveTags'])) {
-            return specialchars($value);
-        } elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'])) {
-            return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
-        } elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'])) {
-            return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
-        }
-
-        // Call the list_value_callback ($value, $field)
-        if (is_array($callback = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
-            $objCallback = System::importStatic($callback[0]);
-            $value = $objCallback->$callback[1]($value, $this);
-        }
-        elseif (is_callable($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
-            $value = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']($value, $field);
-        }
-
-        return $value;
     }
 }

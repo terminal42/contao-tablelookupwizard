@@ -14,37 +14,32 @@ How to use:
 
 	'eval'                    => array
 	(
-		// The foreign table is searched
+		// The foreign table you want to search in
 		'foreignTable'        => 'tl_foreign_tablename',
 
-		// Define "checkbox" on multi select and "radio" on single select
+		// Define "checkbox" for multi selects and "radio" for single selects
 		'fieldType'           => 'checkbox',
 
 		// A list of fields to be displayed in the table
-		'listFields'          => array('field1', 'field2'),
+		'listFields'          => array('field1', 'field2', 'join_table.field1'),
 
-		// Fields that can be searched according to which
-		// jtf.content is a foreign key and will work only if joins are defined
-		'searchFields'        => array('field1', 'jtf.content'),
+		// Fields that can be searched for the keyword
+		'searchFields'        => array('field1', 'join_table.field1'),
 
 		// Adds multiple left joins to the sql statement (optional)
 		'joins'               => array
 		(
 			// Defines the join alias
-			'jtf' => array
+			'join_table' => array
 			(
 				// Join table
-				'table' => 'tl_translation_fields',
+				'table' => 'tl_my_superb_join_table',
 
 				// Key of the join table
-				'jkey' => 'fid',
+				'jkey' => 'pid',
 
 				// Key of the foreign table
-				'fkey' => 'title'
-			),
-			'joinAlias' => array
-			(
-				// ...
+				'fkey' => 'id'
 			)
 		),
 
@@ -53,6 +48,12 @@ How to use:
 
 		// Find every given keyword
 		'matchAllKeywords'    => true
+
+		// Custom additional WHERE conditions
+		'sqlWhere'            => 'AND someother=condition',
+
+		// The search button label
+		'searchLabel'               => 'Search my table now!',
 	),
 
 	// Use the callback to change the value of a list item

@@ -2,11 +2,11 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
-Version 2.?.? (2014-??-??)
+Version 2.1.0 (2014-??-??)
 --------------------------
-- Added joins and groupby support
+- Added support for JOINs
+- Added support for GROUP BY
 - Added list_value_callback
-- Improved sql statements
 
 
 Version 2.0.1 (2013-11-18)

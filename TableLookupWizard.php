@@ -44,6 +44,18 @@ class TableLookupWizard extends Widget
     protected $blnEnableFallback = true;
 
     /**
+     * Search fields
+     * @var array
+     */
+    protected $arrSearchFields = array();
+
+    /**
+     * List fields
+     * @var array
+     */
+    protected $arrListFields = array();
+
+    /**
      * JOIN statements
      * @var array
      */
@@ -85,8 +97,12 @@ class TableLookupWizard extends Widget
                     } else {
                         $arrFields[] = $v . ' AS ' . $k;
                     }
+                    $this->arrSearchFields = $arrFields;
                 }
-                parent::__set($strKey, $arrFields);
+                break;
+
+            case 'listFields':
+                $this->arrListFields = $varValue;
                 break;
 
             case 'foreignTable':
@@ -137,6 +153,10 @@ class TableLookupWizard extends Widget
      */
     public function generate()
     {
+        // Ensure search and list fields have correct aliases
+        $this->ensureColumnAliases($this->arrSearchFields);;
+        $this->ensureColumnAliases($this->arrListFields);
+
         if (\Input::get('tableLookupWizard') == $this->strId) {
             while (ob_end_clean());
             $strBuffer = $this->generateAjax();
@@ -169,21 +189,21 @@ class TableLookupWizard extends Widget
             $strReset = '
     <tr class="reset">
       <td><input type="radio" class="radio" name="' . $this->strId . '" id="reset_' . $this->strId . '" value=""' . ($arrIds[0] == 0 ? ' checked="checked"' : '') . ' /></td>
-      <td colspan="' . (count($this->listFields)) . '"><label for="reset_' . $this->strId . '" class="tl_change_selected">' . $GLOBALS['TL_LANG']['MSC']['resetSelected'] . '</label></td>
+      <td colspan="' . (count($this->arrListFields)) . '"><label for="reset_' . $this->strId . '" class="tl_change_selected">' . $GLOBALS['TL_LANG']['MSC']['resetSelected'] . '</label></td>
     </tr>';
         }
 
         // User has javascript disabled and clicked on link
         if ($this->blnEnableFallback && \Input::get('noajax')) {
-            $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
+            $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->arrListFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
             $strResults = $this->listResults($arrResults) . $strReset;
         } else {
-            $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE id IN (" . implode(',', $arrIds) . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))->fetchAllAssoc();
+            //$arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->arrListFields) . " FROM {$this->foreignTable} WHERE id IN (" . implode(',', $arrIds) . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))->fetchAllAssoc();
             $strResults = $this->listResults($arrResults);
 
             $strResults .= '
     <tr class="jserror">
-      <td colspan="' . (count($this->listFields) + 1) . '">
+      <td colspan="' . (count($this->arrListFields) + 1) . '">
         <p class="tl_error">' . $GLOBALS['TL_LANG']['MSC']['tlwNoJs'] . '</p>';
 
             if ($this->blnEnableFallback) {
@@ -193,7 +213,7 @@ class TableLookupWizard extends Widget
             $strResults .= '</td>
     </tr>' . $strReset . '
     <tr class="search" style="display:none">
-      <td colspan="' . (count($this->listFields) + 1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>
+      <td colspan="' . (count($this->arrListFields) + 1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>
     </tr>';
         }
 
@@ -205,11 +225,11 @@ class TableLookupWizard extends Widget
       <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>';
 
         $i = 1;
-        foreach ($this->listFields as $k => $v) {
+        foreach ($this->arrListFields as $k => $v) {
             $field = is_numeric($k) ? $v : $k;
 
             $strBuffer .= '
-        <th class="head_' . $i . ($i == count($this->listFields) ? ' col_last' : '') . ' tl_folder_tlist">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
+        <th class="head_' . $i . ($i == count($this->arrListFields) ? ' col_last' : '') . ' tl_folder_tlist">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
 
             $i++;
         }
@@ -251,7 +271,7 @@ window.addEvent(\'domready\', function() {
         $strBuffer = $this->listResults($arrResults, true);
 
         if (!$strBuffer)
-            return '<tr class="found empty"><td colspan="' . (count($this->listFields) + 1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
+            return '<tr class="found empty"><td colspan="' . (count($this->arrListFields) + 1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
 
         return $strBuffer;
     }
@@ -262,7 +282,7 @@ window.addEvent(\'domready\', function() {
     protected function prepareQuery()
     {
         // Build SQL statement
-        $this->arrQueryProcedure[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->listFields);
+        $this->arrQueryProcedure[] = "SELECT {$this->foreignTable}.id, " . implode(', ', $this->arrListFields);
         $this->arrQueryProcedure[] = "FROM {$this->foreignTable}";
 
         // Handle joins
@@ -282,6 +302,17 @@ window.addEvent(\'domready\', function() {
         }
     }
 
+    protected function ensureColumnAliases(&$arrFields)
+    {
+        foreach ($arrFields as $k => $strField) {
+            if (strpos($strField, '.') !== false) {
+                continue;
+            }
+
+            $arrFields[$k] = $this->foreignTable . '.' . $strField;
+        }
+    }
+
     protected function prepareWhere()
     {
         $arrKeywords        = trimsplit(' ', \Input::get('keywords'));
@@ -294,9 +325,8 @@ window.addEvent(\'domready\', function() {
             if (!$strKeyword)
                 continue;
 
-            // @todo fix alias
-            $arrWhereProcedure[]  = '(' . implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?)';
-            $arrWhereValues       = array_merge($arrWhereValues, array_fill(0, count($this->searchFields), '%' . $strKeyword . '%'));
+            $arrWhereProcedure[]  = '(' . implode(' LIKE ? OR ', $this->arrSearchFields) . ' LIKE ?)';
+            $arrWhereValues       = array_merge($arrWhereValues, array_fill(0, count($this->arrSearchFields), '%' . $strKeyword . '%'));
         }
 
         // Filter those that have already been chosen
@@ -347,7 +377,7 @@ window.addEvent(\'domready\', function() {
 
             $i = 1;
             foreach ($row as $field => $value) {
-                if ($field == 'id' && !in_array('id', $this->listFields))
+                if ($field == 'id' && !in_array('id', $this->arrListFields))
                     continue;
 
                 $strResults .= '

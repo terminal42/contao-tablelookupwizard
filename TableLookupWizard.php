@@ -307,7 +307,7 @@ window.addEvent(\'domready\', function() {
         }
 
         // If custom WHERE is set, add it to the statement
-        if ($this->sqlWhere !== '') {
+        if ($this->sqlWhere) {
             $arrWhereProcedure[] = "AND {$this->sqlWhere}";
         }
 

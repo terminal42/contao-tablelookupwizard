@@ -440,12 +440,9 @@ window.addEvent(\'domready\', function() {
         }
 
         // Call the list_value_callback ($value, $field)
-        if (is_array($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
-            $strClass = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][0];
-            $strMethod = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'][1];
-
-            $this->import($strClass);
-            $value = $this->$strClass->$strMethod($value, $field);
+        if (is_array($callback = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
+            $objCallback = System::importStatic($callback[0]);
+            $value = $objCallback->$callback[1]($value, $this);
         }
         elseif (is_callable($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback'])) {
             $value = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strName]['list_value_callback']($value, $field);

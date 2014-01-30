@@ -250,8 +250,7 @@ window.addEvent(\'domready\', function() {
 
         $strBuffer = $this->listResults($arrResults, true);
 
-        // @todo !==
-        if (!strlen($strBuffer))
+        if (!$strBuffer)
             return '<tr class="found empty"><td colspan="' . (count($this->listFields) + 1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
 
         return $strBuffer;
@@ -301,8 +300,7 @@ window.addEvent(\'domready\', function() {
         }
 
         // Filter those that have already been chosen
-        // @todo !emtpy()
-        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
+        if ($this->fieldType == 'checkbox' && is_array($varData) && !empty($varData)) {
             $arrWhereProcedure[] = ") AND {$this->foreignTable}.id NOT IN (" . implode(',', $varData);
         } elseif ($this->fieldType == 'radio' && $varData != '') {
             $arrWhereProcedure[] = ") AND ({$this->foreignTable}.id!='$varData'";

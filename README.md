@@ -56,15 +56,6 @@ How to use:
         'searchLabel'               => 'Search my table now!',
     ),
 
-    // Use the callback to change the value of a list item
-    'list_value_callback' => function ($varValue, $strField)
-    {
-        if ($strField == 'field1') {
-            // Returns a translated string by a translation fid
-            return \TranslationFields::translateValue($varValue);
-        }
-    },
-
     // SQL field definition
     'sql'                     => "blob NULL"
 );

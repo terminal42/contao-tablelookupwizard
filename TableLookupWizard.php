@@ -288,8 +288,7 @@ window.addEvent(\'domready\', function() {
         // Handle joins
         if (!empty($this->arrJoins)) {
             foreach ($this->arrJoins as $k => $v) {
-                $k = (is_numeric($k) ? ('j_' . $k) : $k);
-                $this->arrQueryProcedure[] = sprintf("%s %s AS %s ON %s.%s = %s.%s", $v['table'], $v['type'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+                $this->arrQueryProcedure[] = sprintf("%s %s ON %s.%s = %s.%s", $v['type'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
             }
         }
 

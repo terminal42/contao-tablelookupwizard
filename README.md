@@ -21,22 +21,19 @@ How to use:
         'fieldType'           => 'checkbox',
 
         // A list of fields to be displayed in the table
-        'listFields'          => array('field1', 'field2', 'join_table.field1'),
+        'listFields'          => array('field1', 'field2', 'tl_my_superb_join_table.field1'),
 
         // Fields that can be searched for the keyword
-        'searchFields'        => array('field1', 'join_table.field1'),
+        'searchFields'        => array('field1', 'tl_my_superb_join_table.field1'),
 
         // Adds multiple left joins to the sql statement (optional)
         'joins'               => array
         (
-            // Defines the join alias
-            'join_table' => array
+            // Defines the join table
+            'tl_my_superb_join_table' => array
             (
                 // Join type (e.g. INNER JOIN, LEFT JOIN, RIGHT JOIN)
                 'type' => 'LEFT JOIN',
-
-                // Join table
-                'table' => 'tl_my_superb_join_table',
 
                 // Key of the join table
                 'jkey' => 'pid',
@@ -47,7 +44,7 @@ How to use:
         ),
 
         // Adds a "GROUP BY" to the sql statement (optional)
-        'sqlGroupBy'          => 'jtf.fid',
+        'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
 
         // Find every given keyword
         'matchAllKeywords'    => true

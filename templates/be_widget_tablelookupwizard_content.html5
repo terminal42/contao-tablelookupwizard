@@ -1,0 +1,19 @@
+<?php if ($this->hasResults): ?>
+<?php foreach ($this->results as $arrResult): ?>
+    <tr class="<?php echo $arrResult['rowClass']; ?><?php if ($this->isAjax):?> found<?php endif; ?>">
+        <td class="col_0 col_first">
+            <?php if ($this->fieldType == 'radio'): ?>
+                <input type="radio" class="radio" name="<?php echo $this->strId; ?>" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked']):?> checked="checked"<?php endif; ?>>
+            <?php else: ?>
+                <input type="checkbox" class="checkbox" name="<?php echo $this->strId; ?>[]" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked']):?> checked="checked"<?php endif; ?>>
+            <?php endif; ?>
+            <?php $i = 1; ?>
+            <?php foreach ($arrResult['formattedData'] as $varData): ?>
+            <td class="col_<?php echo $i++; ?>"><?php echo $varData; ?></td>
+            <?php endforeach; ?>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+<?php else: ?>
+<tr class="found empty"><td colspan="<?php echo $this->colspan; ?>"><?php echo $this->noResultsMessage; ?></td></tr>
+<?php endif; ?>

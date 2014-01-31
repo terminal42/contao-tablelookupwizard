@@ -17,3 +17,12 @@ ClassLoader::addClasses(array
 (
     'TableLookupWizard' => 'system/modules/tablelookupwizard/TableLookupWizard.php',
 ));
+
+/**
+ * Register the templates
+ */
+TemplateLoader::addFiles(array
+(
+    'be_widget_tablelookupwizard'               => 'system/modules/tablelookupwizard/templates',
+    'be_widget_tablelookupwizard_content'       => 'system/modules/tablelookupwizard/templates',
+));

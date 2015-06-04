@@ -3,7 +3,7 @@
 /**
  * Extension for Contao Open Source CMS
  *
- * Copyright (C) 2013 terminal42 gmbh
+ * Copyright (C) 2013 - 2015 terminal42 gmbh
  *
  * @package    TableLookupWizard
  * @link       http://www.terminal42.ch

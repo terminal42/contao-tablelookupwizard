@@ -1,0 +1,47 @@
+<table cellspacing="0" cellpadding="0" id="ctrl_<?php echo $this->strId; ?>" class="tl_tablelookupwizard tl_listing">
+    <thead>
+        <tr>
+            <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>
+
+            <?php foreach($this->columnLabels as $k => $arrColumnLabel): ?>
+            <th class="head_<?php echo $k; ?> tl_folder_tlist<?php echo $arrColumnLabel['rowClass']; ?>"><?php echo $arrColumnLabel['label']; ?></th>
+            <?php endforeach; ?>
+        </tr>
+    </thead>
+    <tbody>
+
+        <?php echo $this->body; ?>
+
+        <tr class="jserror">
+            <td colspan="<?php echo $this->listFieldsCount + 1; ?>">
+                <p class="tl_error"><?php echo $GLOBALS['TL_LANG']['MSC']['tlwNoJs']; ?></p>;
+
+                <?php if ($this->fallbackEnabled): ?>
+                <a href="<?php echo $this->noAjaxUrl; ?>"><?php echo $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']; ?></a>
+                <?php endif; ?>
+             </td>
+        </tr>
+
+        <?php if ($this->fieldType == 'radio'): ?>
+        <tr class="reset">
+            <td><input type="radio" class="radio" name="' . $this->strId . '" id="reset_' . $this->strId . '" value=""<?php if ($this->hasValues): ?> checked="checked<?php endif; ?>></td>
+            <td colspan="<?php echo $this->listFieldsCount; ?>"><label for="reset_<?php echo $this->strId; ?>" class="tl_change_selected"><?php echo $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
+        </tr>
+        <?php endif; ?>
+
+        <tr class="search" style="display:none">
+            <td colspan="<?php echo $this->listFieldsCount + 1; ?>"><label for="ctrl_<?php echo $this->strId; ?>_search"><?php echo $this->searchLabel; ?>:</label>
+                <input type="text" id="ctrl_<?php echo $this->strId; ?>_search" name="keywords" class="tl_text" autocomplete="off">
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<?php if (!$this->noAjax): ?>
+<script>
+window.addEvent('domready', function() {
+    new TableLookupWizard('<?php echo $this->strId; ?>');
+});
+</script>
+<?php endif; ?>

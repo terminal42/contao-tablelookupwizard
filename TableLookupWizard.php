@@ -3,7 +3,7 @@
 /**
  * Extension for Contao Open Source CMS
  *
- * Copyright (C) 2013 terminal42 gmbh
+ * Copyright (C) 2013 - 2015 terminal42 gmbh
  *
  * @package    TableLookupWizard
  * @link       http://www.terminal42.ch
@@ -26,10 +26,16 @@ class TableLookupWizard extends Widget
     protected $strTemplate = 'be_widget';
 
     /**
-     * Allowed row ids
-     * @var array
+     * Check if there are already id's stored stored
+     * @var boolean
      */
-    protected $arrIds = false;
+    protected $blnHasValues = false;
+
+    /**
+     * Check if this is an ajax request
+     * @var boolean
+     */
+    protected $blnIsAjaxRequest = false;
 
     /**
      * SQL search operator
@@ -43,6 +49,48 @@ class TableLookupWizard extends Widget
      */
     protected $blnEnableFallback = true;
 
+    /**
+     * Search fields
+     * @var array
+     */
+    protected $arrSearchFields = array();
+
+    /**
+     * List fields
+     * @var array
+     */
+    protected $arrListFields = array();
+
+    /**
+     * JOIN statements
+     * @var array
+     */
+    protected $arrJoins = array();
+
+    /**
+     * Query Procedure
+     * @var array
+     */
+    protected $arrQueryProcedure = array();
+
+    /**
+     * Query Values
+     * @var array
+     */
+    protected $arrQueryValues = array();
+
+    /**
+     * WHERE Procedure
+     * @var array
+     */
+    protected $arrWhereProcedure = array();
+
+    /**
+     * WHERE Values
+     * @var array
+     */
+    protected $arrWhereValues = array();
+
 
     /**
      * Store config for ajax upload.
@@ -55,10 +103,6 @@ class TableLookupWizard extends Widget
     public function __set($strKey, $varValue)
     {
         switch ($strKey) {
-            case 'allowedIds':
-                $this->arrIds = deserialize($varValue);
-                break;
-
             case 'searchFields':
                 $arrFields = array();
                 foreach ($varValue as $k => $v) {
@@ -67,8 +111,12 @@ class TableLookupWizard extends Widget
                     } else {
                         $arrFields[] = $v . ' AS ' . $k;
                     }
+                    $this->arrSearchFields = $arrFields;
                 }
-                parent::__set($strKey, $arrFields);
+                break;
+
+            case 'listFields':
+                $this->arrListFields = $varValue;
                 break;
 
             case 'foreignTable':
@@ -89,6 +137,10 @@ class TableLookupWizard extends Widget
                 $this->blnEnableFallback = $varValue ? false : true;
                 break;
 
+            case 'joins':
+                $this->arrJoins = $varValue;
+                break;
+
             default:
                 parent::__set($strKey, $varValue);
                 break;
@@ -98,6 +150,7 @@ class TableLookupWizard extends Widget
 
     /**
      * Validate input and set value
+     * @return  mixed Input
      */
     public function validator($varInput)
     {
@@ -111,18 +164,41 @@ class TableLookupWizard extends Widget
 
     /**
      * Generate the widget and return it as string
-     * @return string
+     * @return  string
      */
     public function generate()
     {
-        if (\Input::get('tableLookupWizard') == $this->strId) {
+        $blnNoAjax          = \Input::get('noajax');
+        $arrIds             = deserialize($this->varValue, true);
+
+        if ($arrIds[0] == '') {
+            $arrIds = array(0);
+        } else {
+            $this->blnHasValues = true;
+        }
+
+        $this->blnIsAjaxRequest = \Input::get('tableLookupWizard') == $this->strId;
+
+        // Ensure search and list fields have correct aliases
+        $this->ensureColumnAliases($this->arrSearchFields);;
+        $this->ensureColumnAliases($this->arrListFields);
+
+        // Ajax call
+        if ($this->blnIsAjaxRequest) {
+            // Clean buffer
             while (ob_end_clean());
-            $strBuffer = $this->generateAjax();
+
+            $this->prepareSelect();
+            $this->prepareJoins();
+            $this->prepareWhere();
+            $this->prepareGroupBy();
+
+            $strBuffer = $this->getBody();
             $strBuffer = json_encode(array
-            (
-                'content'   => $strBuffer,
-                'token'     => REQUEST_TOKEN,
-            ));
+                                     (
+                                     'content'   => $strBuffer,
+                                     'token'     => REQUEST_TOKEN,
+                                     ));
 
             header('Content-Type: application/json; charset=' . $GLOBALS['TL_CONFIG']['characterSet']);
             header('Content-Length: ' . strlen($strBuffer));
@@ -132,241 +208,198 @@ class TableLookupWizard extends Widget
 
         $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';
 
-        if (!\Input::get('noajax')) {
+        if (!$blnNoAjax) {
             $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
         }
 
-        $arrIds = deserialize($this->varValue, true);
+        $this->prepareSelect();
+        $this->prepareJoins();
 
-        if ($arrIds[0] == '') {
-            $arrIds = array(0);
-        }
+        // Add preselect to WHERE statement
+        $this->arrWhereProcedure[] = $this->foreignTable . '.id IN (' . implode(',', $arrIds) . ')';
 
-        $strReset = '';
-        if ($this->fieldType == 'radio') {
-            $strReset = '
-    <tr class="reset">
-      <td><input type="radio" class="radio" name="' . $this->strId . '" id="reset_' . $this->strId . '" value=""' . ($arrIds[0] == 0 ? ' checked="checked"' : '') . ' /></td>
-      <td colspan="' . (count($this->listFields)) . '"><label for="reset_' . $this->strId . '" class="tl_change_selected">' . $GLOBALS['TL_LANG']['MSC']['resetSelected'] . '</label></td>
-    </tr>';
-        }
+        $this->prepareWhere();
+        $this->prepareGroupBy();
 
-        // User has javascript disabled and clicked on link
-        if ($this->blnEnableFallback && \Input::get('noajax')) {
-            $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable}" . (strlen($this->sqlWhere) ? " WHERE {$this->sqlWhere}" : '') . " ORDER BY id=" . implode(' DESC, id=', $arrIds) . " DESC")->fetchAllAssoc();
-            $strResults = $this->listResults($arrResults) . $strReset;
-        } else {
-            $arrResults = \Database::getInstance()->execute("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE id IN (" . implode(',', $arrIds) . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))->fetchAllAssoc();
-            $strResults = $this->listResults($arrResults);
+        $objTemplate = new \BackendTemplate('be_widget_tablelookupwizard');
+        $objTemplate->noAjax            = $blnNoAjax;
+        $objTemplate->strId             = $this->strId;
+        $objTemplate->fieldType         = $this->fieldType;
+        $objTemplate->fallbackEnabled   = $this->blnEnableFallback;
+        $objTemplate->noAjaxUrl         = $this->addToUrl('noajax=1');
+        $objTemplate->listFields        = $this->arrListFields;
+        $objTemplate->listFieldsCount   = count($this->arrListFields);
+        $objTemplate->searchLabel       = $this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel;
+        $objTemplate->columnLabels      = $this->getColumnLabels();
+        $objTemplate->hasValues         = $this->blnHasValues;
+        $objTemplate->body              = $this->getBody();
 
-            $strResults .= '
-    <tr class="jserror">
-      <td colspan="' . (count($this->listFields) + 1) . '">
-        <p class="tl_error">' . $GLOBALS['TL_LANG']['MSC']['tlwNoJs'] . '</p>';
-
-            if ($this->blnEnableFallback) {
-                $strResults .= '<a href="' . $this->addToUrl('noajax=1') . '">' . $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative'] . '</a>';
-            }
-
-            $strResults .= '</td>
-    </tr>' . $strReset . '
-    <tr class="search" style="display:none">
-      <td colspan="' . (count($this->listFields) + 1) . '"><label for="ctrl_' . $this->strId . '_search">' . ($this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel) . ':</label> <input type="text" id="ctrl_' . $this->strId . '_search" name="keywords" class="tl_text" autocomplete="off" /></td>
-    </tr>';
-        }
-
-
-        $strBuffer = '
-<table cellspacing="0" cellpadding="0" id="ctrl_' . $this->strId . '" class="tl_tablelookupwizard tl_listing" summary="Table data">
-  <thead>
-    <tr>
-      <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>';
-
-        $i = 1;
-        foreach ($this->listFields as $k => $v) {
-            $field = is_numeric($k) ? $v : $k;
-
-            $strBuffer .= '
-        <th class="head_' . $i . ($i == count($this->listFields) ? ' col_last' : '') . ' tl_folder_tlist">' . $this->formatLabel($this->foreignTable, $field) . '</th>';
-
-            $i++;
-        }
-
-        $strBuffer .= '
-    </tr>
-  </thead>
-  <tbody>
-' . $strResults . '
-  </tbody>
-</table>';
-
-        if (!\Input::get('noajax')) {
-            $strBuffer .= '
-<script>
-window.addEvent(\'domready\', function() {
-  new TableLookupWizard(\'' . $this->strId . '\');
-});
-</script>';
-        }
-
-        return $strBuffer;
+        return $objTemplate->parse();
     }
 
-
-    public function generateAjax()
+    /**
+     * Renders the table body
+     * @return  string
+     */
+    public function getBody()
     {
-        $arrKeywords = trimsplit(' ', \Input::get('keywords'));
+        $objTemplate    = new \BackendTemplate('be_widget_tablelookupwizard_content');
+        $arrResults     = array();
 
-        $strFilter = '';
-        $arrProcedures = array();
-        $arrValues = array();
+        // Get results
+        $objResults = \Database::getInstance()
+            ->prepare(implode(' ', $this->arrQueryProcedure))
+            ->execute($this->arrQueryValues);
 
-        foreach ($arrKeywords as $keyword) {
-            if (!strlen($keyword))
-                continue;
-
-            $arrProcedures[] .= '(' . implode(' LIKE ? OR ', $this->searchFields) . ' LIKE ?)';
-            $arrValues = array_merge($arrValues, array_fill(0, count($this->searchFields), '%' . $keyword . '%'));
+        if ($objResults->numRows) {
+            $objTemplate->hasResults = true;
         }
 
-        if (!count($arrProcedures))
-            return '';
+        while($objResults->next()) {
+            $arrRow = $objResults->row();
+            $strKey = $arrRow[$this->foreignTable . '_id'];
+            $arrResults[$strKey]['rowId'] = $arrRow[$this->foreignTable . '_id'];
+            $arrResults[$strKey]['rawData'] = $arrRow;
 
-        $varData = \Input::get($this->strName);
+            // Mark checked if not ajax call
+            if (!$this->blnIsAjaxRequest) {
+                $arrResults[$strKey]['isChecked'] = $this->optionChecked($arrRow[$this->foreignTable . '_id'], $this->varValue);
+            }
 
-        if ($this->fieldType == 'checkbox' && is_array($varData) && count($varData)) {
-            $strFilter = ") AND id NOT IN (" . implode(',', $varData);
+            foreach ($this->arrListFields as $strField) {
+                list($strTable, $strColumn) = explode('.', $strField);
+                $strFieldKey = str_replace('.', '_', $strField);
+                $arrResults[$strKey]['formattedData'][$strFieldKey] = \Haste\Util\Format::dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
+            }
+        }
+
+        \Haste\Generator\RowClass::withKey('rowClass')
+            ->addCount('row_')
+            ->addFirstLast('row_')
+            ->addEvenOdd('row_')
+            ->applyTo($arrResults);
+
+        $objTemplate->results           = $arrResults;
+        $objTemplate->colspan           = count($this->arrListFields) + 1;
+        $objTemplate->noResultsMessage  = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
+        $objTemplate->fieldType         = $this->fieldType;
+        $objTemplate->isAjax            = $this->blnIsAjaxRequest;
+        $objTemplate->strId             = $this->strId;
+
+        return $objTemplate->parse();
+    }
+
+    /**
+     * Prepares the SELECT statement
+     */
+    protected function prepareSelect()
+    {
+        $arrSelects = array($this->foreignTable . '.id AS ' . $this->foreignTable .'_id');
+
+        foreach ($this->arrListFields as $strField) {
+            $arrSelects[] = $strField . ' AS ' . str_replace('.', '_', $strField);
+        }
+
+        // Build SQL statement
+        $this->arrQueryProcedure[] = 'SELECT ' . implode(', ', $arrSelects);
+        $this->arrQueryProcedure[] = 'FROM ' . $this->foreignTable;
+    }
+
+    /**
+     * Prepares the JOIN statement
+     */
+    protected function prepareJoins()
+    {
+        if (!empty($this->arrJoins)) {
+            foreach ($this->arrJoins as $k => $v) {
+                $this->arrQueryProcedure[] = sprintf("%s %s ON %s.%s = %s.%s", $v['type'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+            }
+        }
+    }
+
+    /**
+     * Prepares the WHERE statement
+     */
+    protected function prepareWhere()
+    {
+        $arrKeywords        = trimsplit(' ', \Input::get('keywords'));
+        $varData            = \Input::get($this->strName);
+
+        // Handle keywords
+        foreach ($arrKeywords as $strKeyword) {
+            if (!$strKeyword)
+                continue;
+
+            $this->arrWhereProcedure[]  = '(' . implode(' LIKE ? OR ', $this->arrSearchFields) . ' LIKE ?)';
+            $this->arrWhereValues       = array_merge($this->arrWhereValues, array_fill(0, count($this->arrSearchFields), '%' . $strKeyword . '%'));
+        }
+
+        // Filter those that have already been chosen
+        if ($this->fieldType == 'checkbox' && is_array($varData) && !empty($varData)) {
+            $this->arrWhereProcedure[] = $this->foreignTable . '.id NOT IN (' . implode(',', $varData) . ')';
         } elseif ($this->fieldType == 'radio' && $varData != '') {
-            $strFilter = ") AND (id!='$varData'";
+            $this->arrWhereProcedure[] = "{$this->foreignTable}.id!='$varData'";
         }
 
-        $arrResults = \Database::getInstance()->prepare("SELECT id, " . implode(', ', $this->listFields) . " FROM {$this->foreignTable} WHERE (" . implode($this->strOperator, $arrProcedures) . $strFilter . ")" . (strlen($this->sqlWhere) ? " AND {$this->sqlWhere}" : ''))
-            ->execute($arrValues)
-            ->fetchAllAssoc();
+        // If custom WHERE is set, add it to the statement
+        if ($this->sqlWhere) {
+            $this->arrWhereProcedure[] = $this->sqlWhere;
+        }
 
-        $strBuffer = $this->listResults($arrResults, true);
-
-        if (!strlen($strBuffer))
-            return '<tr class="found empty"><td colspan="' . (count($this->listFields) + 1) . '">' . sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords')) . '</td></tr>';
-
-        return $strBuffer;
+        if (!empty($this->arrWhereProcedure)) {
+            $strWhere = implode(' AND ', $this->arrWhereProcedure);
+            $this->arrQueryProcedure[]  = 'WHERE ' . $strWhere;
+            $this->arrQueryValues       = array_merge($this->arrQueryValues, $this->arrWhereValues);
+        }
     }
 
-
-    protected function listResults($arrResults, $blnAjax = false)
+    /**
+     * Prepares the GROUP BY statement
+     */
+    protected function prepareGroupBy()
     {
-        $c = 0;
-        $strResults = '';
+        if ($this->sqlGroupBy) {
+            $this->arrQueryProcedure[] = "GROUP BY {$this->sqlGroupBy}";
+        }
+    }
 
-        foreach ($arrResults as $row) {
-            if (is_array($this->arrIds) && !in_array($row['id'], $this->arrIds))
+    /**
+     * Ensures that the columns are all aliased
+     * If there's no alias passed in, it will automatically treat it as a
+     * column of the foreignTable
+     * @param   array
+     */
+    protected function ensureColumnAliases(&$arrFields)
+    {
+        foreach ($arrFields as $k => $strField) {
+            if (strpos($strField, '.') !== false) {
                 continue;
-
-            switch ($this->fieldType) {
-                case 'radio':
-                    $input = '<input type="radio" class="radio" name="' . $this->strId . '" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
-                    break;
-
-                case 'checkbox':
-                    $input = '<input type="checkbox" class="checkbox" name="' . $this->strId . '[]" value="' . $row['id'] . '"' . ($blnAjax ? '' : $this->optionChecked($row['id'], $this->varValue)) . ' />';
-                    break;
-
-                default:
-                    $input = '';
-                    break;
             }
 
-            $strResults .= '
-    <tr class="' . ($c % 2 ? 'even' : 'odd') . ($c == 0 ? ' row_first' : '') . ($blnAjax ? ' found' : '') . '">
-      <td class="col_0 col_first">' . $input . '</td>';
-
-            $i = 1;
-            foreach ($row as $field => $value) {
-                if ($field == 'id' && !in_array('id', $this->listFields))
-                    continue;
-
-                $strResults .= '
-      <td class="col_' . $i . '">' . $this->formatValue($this->foreignTable, $field, $value) . '</td>';
-
-                $i++;
-            }
-
-            $strResults .= '
-    </tr>';
-
-            $c++;
+            $arrFields[$k] = $this->foreignTable . '.' . $strField;
         }
-
-        return $strResults;
     }
 
-
     /**
-     * Format value (based on DC_Table::show(), Contao 2.9.0)
-     * @param  mixed
-     * @param  string
-     * @param  string
-     * @return string
+     * Get formatted column labels
+     * @return  array
      */
-    protected function formatValue($table, $field, $value)
+    protected function getColumnLabels()
     {
-        $value = deserialize($value);
+        $arrLabels = array();
 
-        // Get field value
-        if (strlen($GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey'])) {
-            $chunks = explode('.', $GLOBALS['TL_DCA'][$table]['fields'][$field]['foreignKey']);
-
-            $objKey = \Database::getInstance()->execute("SELECT " . $chunks[1] . " AS value FROM " . $chunks[0] . " WHERE id IN (" . implode(',', array_map('intval', (array)$value)) . ")");
-
-            return implode(', ', $objKey->fetchEach('value'));
-        } elseif (is_array($value)) {
-            foreach ($value as $kk => $vv) {
-                if (is_array($vv)) {
-                    $vals = array_values($vv);
-                    $value[$kk] = $vals[0] . ' (' . $vals[1] . ')';
-                }
-            }
-
-            return implode(', ', $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'date') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['dateFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'time') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['timeFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['rgxp'] == 'datim' || in_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['flag'], array(5, 6, 7, 8, 9, 10)) || $field == 'tstamp') {
-            return \Date::parse($GLOBALS['TL_CONFIG']['datimFormat'], $value);
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'checkbox' && !$GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['multiple']) {
-            return strlen($value) ? $GLOBALS['TL_LANG']['MSC']['yes'] : $GLOBALS['TL_LANG']['MSC']['no'];
-        } elseif ($GLOBALS['TL_DCA'][$table]['fields'][$field]['inputType'] == 'textarea' && ($GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['allowHtml'] || $GLOBALS['TL_DCA'][$table]['fields'][$field]['eval']['preserveTags'])) {
-            return specialchars($value);
-        } elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'])) {
-            return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) ? ((is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value])) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['reference'][$value]) : $value;
-        } elseif (is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'])) {
-            return isset($GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value]) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['options'][$value] : $value;
+        foreach ($this->arrListFields as $strField) {
+            $strKey = standardize($strField);
+            list($strTable, $strColumn) = explode('.', $strField);
+            $arrLabels[$strKey]['label'] = \Haste\Util\Format::dcaLabel($strTable, $strColumn);
         }
 
-        return $value;
-    }
+        \Haste\Generator\RowClass::withKey('rowClass')
+            ->addCount('row_')
+            ->addFirstLast('row_')
+            ->addEvenOdd('row_')
+            ->applyTo($arrLabels);
 
-
-    /**
-     * Format label (based on DC_Table::show(), Contao 2.9.0)
-     * @param  mixed
-     * @param  string
-     * @param  string
-     * @return string
-     */
-    protected function formatLabel($table, $field)
-    {
-        if (count($GLOBALS['TL_DCA'][$table]['fields'][$field]['label'])) {
-            $label = is_array($GLOBALS['TL_DCA'][$table]['fields'][$field]['label']) ? $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'][0] : $GLOBALS['TL_DCA'][$table]['fields'][$field]['label'];
-        } else {
-            $label = is_array($GLOBALS['TL_LANG']['MSC'][$field]) ? $GLOBALS['TL_LANG']['MSC'][$field][0] : $GLOBALS['TL_LANG']['MSC'][$field];
-        }
-
-        if (!strlen($label)) {
-            $label = $field;
-        }
-
-        return $label;
+        return $arrLabels;
     }
 }

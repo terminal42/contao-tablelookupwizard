@@ -194,16 +194,13 @@ class TableLookupWizard extends Widget
             $this->prepareGroupBy();
 
             $strBuffer = $this->getBody();
-            $strBuffer = json_encode(array
-                                     (
-                                     'content'   => $strBuffer,
-                                     'token'     => REQUEST_TOKEN,
-                                     ));
+            $response = new \Haste\Http\Response\JsonResponse(array
+            (
+                'content'   => $strBuffer,
+                'token'     => REQUEST_TOKEN,
+            ));
 
-            header('Content-Type: application/json; charset=' . $GLOBALS['TL_CONFIG']['characterSet']);
-            header('Content-Length: ' . strlen($strBuffer));
-            echo $strBuffer;
-            exit;
+            $response->send();
         }
 
         $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';

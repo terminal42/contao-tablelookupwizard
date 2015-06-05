@@ -2,6 +2,12 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 3.1.0 (2015-??-??)
+--------------------------
+- Added support for ORDER BY
+- Added support for manual sorting
+
+
 Version 3.0.0 (2015-06-04)
 --------------------------
 - Added support for JOINs

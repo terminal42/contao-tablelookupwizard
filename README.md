@@ -53,7 +53,10 @@ How to use:
         'sqlWhere'            => 'AND someother=condition',
 
         // The search button label
-        'searchLabel'               => 'Search my table now!',
+        'searchLabel'         => 'Search my table now!',
+
+        // Enables drag n drop sorting of chosen values
+        'enableSorting'       => true
     ),
 
     // SQL field definition

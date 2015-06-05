@@ -12,35 +12,71 @@
 var TableLookupWizard = (function() {
 "use strict";
 
-    return function(name) {
+    return function(name, options) {
 
-        var timer, widget, href, separator_row;
+        var timer, widget, href, separator_row, sortables;
 
-        function checked(event)
-        {
+        function checked(event) {
+            var parent = event.target.getParent('tr');
+
             if (event.target.checked) {
-                event.target.getParent('tr').removeClass('found').inject(widget.getElement('tr.search'), 'before');
+                parent.removeClass('found')
+                    .addClass('selected')
+                    .inject(widget.getElement('tr.search'), 'before');
+
+                if (options && options.enableSorting) {
+                    parent.getElement('.drag-handle').setStyle('display', 'inline');
+                    console.log(sortables);
+                    sortables.addItems(parent);
+                }
+
             } else {
-                event.target.getParent('tr').destroy();
+                parent.destroy();
                 widget.send(href);
+
+                if (options && options.enableSorting) {
+                    sortables.removeItems(parent);
+                }
             }
         };
 
-        function selected(event)
-        {
-            event.target.getParent('tr').removeClass('found').inject(separator_row, 'before');
+        function selected(event) {
+            event.target.getParent('tr')
+                .removeClass('found')
+                .inject(separator_row, 'before');
             event.target.getParent('tr').getAllPrevious().destroy();
             widget.send(href);
         };
+
+        function initSortables() {
+            sortables = new Sortables(widget.getElements('tbody'), {
+                constrain: true,
+                clone: false,
+                handle: '.drag-handle'
+            });
+
+            // Override getDroppables() so it only takes the row.selected as droppables, not the whole table rows
+            sortables.getDroppables = function() {
+                return widget.getElements('tbody tr.row.selected');
+             };
+
+            // Remove the search and reset and search rows from the sortables otherwise they can be dragged
+            sortables.removeItems(widget.getElements('tbody tr.search'), widget.getElements('tbody tr.reset'));
+        };
+
 
         widget = document.id('ctrl_' + name);
         separator_row = widget.getElement('tr.reset, tr.search');
         href = window.location.href + '&tableLookupWizard=' + name;
 
+        if (options && options.enableSorting) {
+            initSortables();
+        }
+
         widget.getElement('.jserror').setStyle('display', 'none');
         widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine && Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
 
-        widget.getElements('tbody tr').each(function(row) {
+        widget.getElements('tbody tr').forEach(function(row) {
 
             var check = row.getElement('input[type=checkbox]') || row.getElement('input[type=radio]');
 
@@ -74,7 +110,7 @@ var TableLookupWizard = (function() {
 
                 rows = Elements.from(text, false);
                 widget.getElement('tbody').adopt(rows);
-                rows.each(function(row) {
+                rows.forEach(function(row) {
                     if (row.getElement('input[type=checkbox]'))
                         row.getElement('input[type=checkbox]').addEvent('click', checked);
 

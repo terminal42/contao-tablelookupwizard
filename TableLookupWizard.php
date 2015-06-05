@@ -288,6 +288,7 @@ class TableLookupWizard extends Widget
         }
 
         \Haste\Generator\RowClass::withKey('rowClass')
+            ->addCustom('row')
             ->addCount('row_')
             ->addFirstLast('row_')
             ->addEvenOdd('row_')
@@ -430,6 +431,7 @@ class TableLookupWizard extends Widget
         }
 
         \Haste\Generator\RowClass::withKey('rowClass')
+            ->addCustom('row')
             ->addCount('row_')
             ->addFirstLast('row_')
             ->addEvenOdd('row_')

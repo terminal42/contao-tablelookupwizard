@@ -50,6 +50,12 @@ class TableLookupWizard extends Widget
     protected $blnEnableFallback = true;
 
     /**
+     * Enable drag n drop sorting
+     * @var boolean
+     */
+    protected $blnEnableSorting = false;
+
+    /**
      * Search fields
      * @var array
      */
@@ -135,6 +141,14 @@ class TableLookupWizard extends Widget
 
             case 'disableJavascriptFallback':
                 $this->blnEnableFallback = $varValue ? false : true;
+                break;
+
+            case 'enableSorting':
+                if ($this->fieldType !== 'checkbox') {
+                    throw new RuntimeException('You cannot make a non-checkbox field type sortable!');
+                }
+
+                $this->blnEnableSorting = $varValue ? true : false;
                 break;
 
             case 'joins':
@@ -225,10 +239,11 @@ class TableLookupWizard extends Widget
         $objTemplate->fallbackEnabled   = $this->blnEnableFallback;
         $objTemplate->noAjaxUrl         = $this->addToUrl('noajax=1');
         $objTemplate->listFields        = $this->arrListFields;
-        $objTemplate->listFieldsCount   = count($this->arrListFields);
+        $objTemplate->colspan           = count($this->arrListFields) + (int) $this->blnEnableSorting;
         $objTemplate->searchLabel       = $this->searchLabel == '' ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel;
         $objTemplate->columnLabels      = $this->getColumnLabels();
         $objTemplate->hasValues         = $this->blnHasValues;
+        $objTemplate->enableSorting     = $this->blnEnableSorting;
         $objTemplate->body              = $this->getBody();
 
         return $objTemplate->parse();
@@ -277,11 +292,13 @@ class TableLookupWizard extends Widget
             ->applyTo($arrResults);
 
         $objTemplate->results           = $arrResults;
-        $objTemplate->colspan           = count($this->arrListFields) + 1;
+        $objTemplate->colspan           = count($this->arrListFields) + 1 + (int) $this->blnEnableSorting;
         $objTemplate->noResultsMessage  = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
         $objTemplate->fieldType         = $this->fieldType;
         $objTemplate->isAjax            = $this->blnIsAjaxRequest;
         $objTemplate->strId             = $this->strId;
+        $objTemplate->enableSorting     = $this->blnEnableSorting;
+        $objTemplate->dragHandleIcon    = 'system/themes/' . \Backend::getTheme() . '/images/drag.gif';
 
         return $objTemplate->parse();
     }

@@ -11,6 +11,11 @@
             <?php foreach ($arrResult['formattedData'] as $varData): ?>
             <td class="col_<?php echo $i++; ?>"><?php echo $varData; ?></td>
             <?php endforeach; ?>
+            <?php if ($this->enableSorting): ?>
+                <td class="operations">
+                    <img src="<?php echo $this->dragHandleIcon; ?>" width="14" height="16" alt="" class="drag-handle"<?php if ($this->isAjax): ?> style="display:none"<?php endif; ?>>
+                </td>
+            <?php endif; ?>
         </td>
     </tr>
     <?php endforeach; ?>

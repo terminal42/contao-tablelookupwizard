@@ -205,6 +205,7 @@ class TableLookupWizard extends Widget
             $this->prepareSelect();
             $this->prepareJoins();
             $this->prepareWhere();
+            $this->prepareOrderBy();
             $this->prepareGroupBy();
 
             $strBuffer = $this->getBody();
@@ -230,6 +231,7 @@ class TableLookupWizard extends Widget
         $this->arrWhereProcedure[] = $this->foreignTable . '.id IN (' . implode(',', $arrIds) . ')';
 
         $this->prepareWhere();
+        $this->prepareOrderBy();
         $this->prepareGroupBy();
 
         $objTemplate = new \BackendTemplate('be_widget_tablelookupwizard');
@@ -364,6 +366,25 @@ class TableLookupWizard extends Widget
             $strWhere = implode(' AND ', $this->arrWhereProcedure);
             $this->arrQueryProcedure[]  = 'WHERE ' . $strWhere;
             $this->arrQueryValues       = array_merge($this->arrQueryValues, $this->arrWhereValues);
+        }
+    }
+
+    /**
+     * Prepares the ORDER BY statement
+     */
+    protected function prepareOrderBy()
+    {
+        if ($this->sqlOrderBy && $this->blnEnableSorting) {
+            throw new RuntimeException('You cannot use "enableSorting" and a custom "ORDER BY" query part at the same time!');
+        }
+
+        if ($this->sqlOrderBy) {
+            $this->arrQueryProcedure[] = "ORDER BY {$this->sqlOrderBy}";
+        }
+
+        // The sorting of the values has only be done on the initial (= not the ajax) request
+        if ($this->blnEnableSorting && !$this->blnIsAjaxRequest) {
+            $this->arrQueryProcedure[] = 'ORDER BY ' . \Database::getInstance()->findInSet($this->foreignTable . '.id', $this->value);
         }
     }
 

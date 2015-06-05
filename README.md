@@ -43,14 +43,17 @@ How to use:
             )
         ),
 
-        // Adds a "GROUP BY" to the sql statement (optional)
-        'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
-
         // Find every given keyword
         'matchAllKeywords'    => true
 
         // Custom additional WHERE conditions
         'sqlWhere'            => 'AND someother=condition',
+
+        // Custom ORDER BY - note that when you use "enableSorting" you cannot set this value!
+        'sqlOrderBy'            => 'someColumn',
+
+        // Adds a "GROUP BY" to the sql statement (optional)
+        'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
 
         // The search button label
         'searchLabel'         => 'Search my table now!',

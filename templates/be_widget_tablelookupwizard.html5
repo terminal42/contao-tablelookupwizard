@@ -7,7 +7,7 @@
             <th class="head_<?php echo $k; ?> tl_folder_tlist <?php echo $arrColumnLabel['rowClass']; ?>"><?php echo $arrColumnLabel['label']; ?></th>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
-            <th></th>
+            <th class="tl_folder_tlist"></th>
             <?php endif; ?>
         </tr>
     </thead>

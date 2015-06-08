@@ -26,7 +26,6 @@ var TableLookupWizard = (function() {
 
                 if (options && options.enableSorting) {
                     parent.getElement('.drag-handle').setStyle('display', 'inline');
-                    console.log(sortables);
                     sortables.addItems(parent);
                 }
 

@@ -4,7 +4,7 @@
             <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>
 
             <?php foreach($this->columnLabels as $k => $arrColumnLabel): ?>
-            <th class="head_<?php echo $k; ?> tl_folder_tlist<?php echo $arrColumnLabel['rowClass']; ?>"><?php echo $arrColumnLabel['label']; ?></th>
+            <th class="head_<?php echo $k; ?> tl_folder_tlist <?php echo $arrColumnLabel['rowClass']; ?>"><?php echo $arrColumnLabel['label']; ?></th>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
             <th></th>

@@ -22,7 +22,7 @@
 }
 
 .tl_tablelookupwizard .search td {
-	padding-left: 9px !important;
+    padding-left: 9px !important;
 }
 
 .tl_tablelookupwizard .search input.tl_text {
@@ -30,4 +30,9 @@
     background-repeat: no-repeat;
     padding-right: 20px;
     margin-left: 4px;
+}
+
+.tl_tablelookupwizard td.operations {
+    width: 20px;
+    text-align: right;
 }

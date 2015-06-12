@@ -259,15 +259,51 @@ class TableLookupWizard extends Widget
     {
         $objTemplate    = new \BackendTemplate('be_widget_tablelookupwizard_content');
         $arrResults     = array();
+        $blnQuery       = true;
 
-        // Get results
+        if ($this->blnIsAjaxRequest && !\Input::get('keywords')) {
+            $blnQuery = false;
+        }
+
+        if ($blnQuery) {
+            $arrResults = $this->getResults();
+
+            \Haste\Generator\RowClass::withKey('rowClass')
+                ->addCustom('row')
+                ->addCount('row_')
+                ->addFirstLast('row_')
+                ->addEvenOdd('row_')
+                ->applyTo($arrResults);
+        }
+
+        if (!empty($arrResults)) {
+            $objTemplate->hasResults = true;
+        }
+
+        $objTemplate->results           = $arrResults;
+        $objTemplate->colspan           = count($this->arrListFields) + 1 + (int) $this->blnEnableSorting;
+        $objTemplate->noResultsMessage  = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
+        $objTemplate->fieldType         = $this->fieldType;
+        $objTemplate->isAjax            = $this->blnIsAjaxRequest;
+        $objTemplate->strId             = $this->strId;
+        $objTemplate->enableSorting     = $this->blnEnableSorting;
+        $objTemplate->dragHandleIcon    = 'system/themes/' . \Backend::getTheme() . '/images/drag.gif';
+
+        return $objTemplate->parse();
+    }
+
+    /**
+     * Get the results
+     *
+     * @return array
+     */
+    protected function getResults()
+    {
+        $arrResults     = array();
+
         $objResults = \Database::getInstance()
             ->prepare(implode(' ', $this->arrQueryProcedure))
             ->execute($this->arrQueryValues);
-
-        if ($objResults->numRows) {
-            $objTemplate->hasResults = true;
-        }
 
         while($objResults->next()) {
             $arrRow = $objResults->row();
@@ -287,23 +323,7 @@ class TableLookupWizard extends Widget
             }
         }
 
-        \Haste\Generator\RowClass::withKey('rowClass')
-            ->addCustom('row')
-            ->addCount('row_')
-            ->addFirstLast('row_')
-            ->addEvenOdd('row_')
-            ->applyTo($arrResults);
-
-        $objTemplate->results           = $arrResults;
-        $objTemplate->colspan           = count($this->arrListFields) + 1 + (int) $this->blnEnableSorting;
-        $objTemplate->noResultsMessage  = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
-        $objTemplate->fieldType         = $this->fieldType;
-        $objTemplate->isAjax            = $this->blnIsAjaxRequest;
-        $objTemplate->strId             = $this->strId;
-        $objTemplate->enableSorting     = $this->blnEnableSorting;
-        $objTemplate->dragHandleIcon    = 'system/themes/' . \Backend::getTheme() . '/images/drag.gif';
-
-        return $objTemplate->parse();
+        return $arrResults;
     }
 
     /**

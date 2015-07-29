@@ -27,7 +27,7 @@
 
         <?php if ($this->fieldType == 'radio'): ?>
         <tr class="reset">
-            <td><input type="radio" class="radio" name="' . $this->strId . '" id="reset_' . $this->strId . '" value=""<?php if ($this->hasValues): ?> checked="checked<?php endif; ?>></td>
+            <td><input type="radio" class="radio" name="reset_<?php echo $this->strId; ?>" id="reset_<?php echo $this->strId; ?>" value=""<?php if ($this->hasValues): ?> checked="checked<?php endif; ?>></td>
             <td colspan="<?php echo $this->colspan; ?>"><label for="reset_<?php echo $this->strId; ?>" class="tl_change_selected"><?php echo $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
         </tr>
         <?php endif; ?>

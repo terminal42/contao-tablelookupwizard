@@ -23,6 +23,9 @@ How to use:
         // A list of fields to be displayed in the table
         'listFields'          => array('field1', 'field2', 'tl_my_superb_join_table.field1'),
 
+        // Custom labels to be displayed in the table header
+        'customLabels'        => array('Label 1', 'Label 2', 'Label 3'),
+
         // Fields that can be searched for the keyword
         'searchFields'        => array('field1', 'tl_my_superb_join_table.field1'),
 

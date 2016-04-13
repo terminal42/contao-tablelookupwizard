@@ -97,6 +97,12 @@ class TableLookupWizard extends Widget
      */
     protected $arrWhereValues = array();
 
+    /**
+     * Custom label
+     * @var array
+     */
+    protected $customLabels = array();
+
 
     /**
      * Store config for ajax upload.
@@ -153,6 +159,10 @@ class TableLookupWizard extends Widget
 
             case 'joins':
                 $this->arrJoins = $varValue;
+                break;
+
+            case 'customLabels':
+                $this->customLabels = (array)$varValue;
                 break;
 
             default:
@@ -443,11 +453,19 @@ class TableLookupWizard extends Widget
     protected function getColumnLabels()
     {
         $arrLabels = array();
+        $count = 0;
 
         foreach ($this->arrListFields as $strField) {
-            $strKey = standardize($strField);
-            list($strTable, $strColumn) = explode('.', $strField);
-            $arrLabels[$strKey]['label'] = \Haste\Util\Format::dcaLabel($strTable, $strColumn);
+            // Use a custom label
+            if (count($this->customLabels) > 0) {
+                $label = $this->customLabels[$count++];
+            } else {
+                // Get the label from DCA
+                list($strTable, $strColumn) = explode('.', $strField);
+                $label = \Haste\Util\Format::dcaLabel($strTable, $strColumn);
+            }
+
+            $arrLabels[standardize($strField)]['label'] = $label;
         }
 
         \Haste\Generator\RowClass::withKey('rowClass')

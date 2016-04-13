@@ -2,6 +2,13 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 3.2.0 (2016-04-13)
+--------------------------
+- Added support for custom labels
+- Added support for Contao 4
+- Made the table 100% wide
+
+
 Version 3.1.0 (2015-06-09)
 --------------------------
 - Added support for ORDER BY

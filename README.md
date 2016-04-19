@@ -50,7 +50,7 @@ How to use:
         'matchAllKeywords'    => true
 
         // Custom additional WHERE conditions
-        'sqlWhere'            => 'AND someother=condition',
+        'sqlWhere'            => 'someother=condition',
 
         // Custom ORDER BY - note that when you use "enableSorting" you cannot set this value!
         'sqlOrderBy'            => 'someColumn',

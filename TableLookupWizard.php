@@ -290,9 +290,16 @@ class TableLookupWizard extends Widget
             $objTemplate->hasResults = true;
         }
 
+        // Determine the results message based on keywords availability
+        if (strlen(\Input::get('keywords'))) {
+            $noResultsMessage = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
+        } else {
+            $noResultsMessage = $GLOBALS['TL_LANG']['MSC']['tlwNoValue'];
+        }
+
         $objTemplate->results           = $arrResults;
         $objTemplate->colspan           = count($this->arrListFields) + 1 + (int) $this->blnEnableSorting;
-        $objTemplate->noResultsMessage  = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
+        $objTemplate->noResultsMessage  = $noResultsMessage;
         $objTemplate->fieldType         = $this->fieldType;
         $objTemplate->isAjax            = $this->blnIsAjaxRequest;
         $objTemplate->strId             = $this->strId;

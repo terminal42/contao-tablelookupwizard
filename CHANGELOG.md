@@ -2,7 +2,7 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
-Version 3.2.1 (????-??-??)
+Version 3.2.1 (2016-08-31)
 --------------------------
 - Changed the displayed message if no search has been performed
 

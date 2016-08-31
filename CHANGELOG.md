@@ -2,6 +2,11 @@
 Contao Extension "tablelookupwizard"
 ====================================
 
+Version 3.2.1 (2016-08-31)
+--------------------------
+- Changed the displayed message if no search has been performed
+
+
 Version 3.2.0 (2016-04-13)
 --------------------------
 - Added support for custom labels

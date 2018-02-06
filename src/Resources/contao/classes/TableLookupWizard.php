@@ -228,10 +228,10 @@ class TableLookupWizard extends Widget
             $response->send();
         }
 
-        $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';
+        $GLOBALS['TL_CSS'][] = 'bundles/terminal42contaotablelookupwizard/tablelookup.min.css';
 
         if (!$blnNoAjax) {
-            $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
+            $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/terminal42contaotablelookupwizard/tablelookup.min.js';
         }
 
         $this->prepareSelect();

@@ -1,6 +1,7 @@
 {
   "name": "terminal42/contao-tablelookupwizard",
   "description": "Contao widget to select records from a foreign table. Useful if you have a large set of records.",
+  "version": "3.2.1",
   "type": "contao-bundle",
   "keywords": ["contao", "widget", "tablelookupwizard"],
   "license": "LGPL-3.0+",

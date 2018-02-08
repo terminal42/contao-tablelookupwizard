@@ -121,7 +121,7 @@ var TableLookupWizard = (function() {
         }).addEvent('keyup', function() {
             clearTimeout(timer);
             timer = setTimeout(function() {
-                widget.getElement('.search input.tl_text').setStyle('background-image', 'url(system/modules/tablelookupwizard/assets/loading.gif)');
+                widget.getElement('.search input.tl_text').setStyle('background-image', 'url(bundles/terminal42contaotablelookupwizard/loading.gif)');
                 widget.send(href);
             }, 300);
         });

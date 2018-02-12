@@ -238,12 +238,6 @@ class TableLookupWizard extends Widget
             $response->send();
         }
 
-        $GLOBALS['TL_CSS'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.css';
-
-        if (!$blnNoAjax) {
-            $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
-        }
-
         $this->prepareSelect();
         $this->prepareJoins();
 

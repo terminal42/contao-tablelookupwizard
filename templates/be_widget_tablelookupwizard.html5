@@ -42,11 +42,27 @@
 
 
 <?php if (!$this->noAjax): ?>
+<link rel="stylesheet" href="system/modules/tablelookupwizard/assets/tablelookup.min.css">
 <script>
 window.addEvent('domready', function() {
-    new TableLookupWizard('<?php echo $this->strId; ?>', {
-        enableSorting: <?php echo $this->enableSorting ? 'true' : 'false'; ?>
-    });
+    function init() {
+        new TableLookupWizard('<?php echo $this->strId; ?>', {
+            enableSorting: <?php echo $this->enableSorting ? 'true' : 'false'; ?>
+        });
+    }
+
+    if (!window.TableLookupWizard) {
+        var wizard = document.createElement('script');
+        wizard.type = 'text/javascript';
+        wizard.src = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
+        wizard.onload = init;
+        wizard.onreadystatechange = init;
+
+        var script = document.getElementsByTagName('script')[0];
+        script.parentNode.insertBefore(wizard, script);
+    } else {
+        init();
+    }
 });
 </script>
 <?php endif; ?>

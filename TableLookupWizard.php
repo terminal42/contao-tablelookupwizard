@@ -206,7 +206,7 @@ class TableLookupWizard extends Widget
         $blnNoAjax = \Input::get('noajax');
         $arrIds = deserialize($this->varValue, true);
 
-        if ('' === $arrIds[0]) {
+        if (!$arrIds[0]) {
             $arrIds = [0];
         } else {
             $this->blnHasValues = true;

@@ -1,3 +1,5 @@
+<?php $this->block('table'); ?>
+
 <table cellspacing="0" cellpadding="0" id="ctrl_<?php echo $this->strId; ?>" class="tl_tablelookupwizard tl_listing">
     <thead>
         <tr>
@@ -40,8 +42,12 @@
     </tbody>
 </table>
 
+<?php $this->endblock(); ?>
 
 <?php if (!$this->noAjax): ?>
+
+<?php $this->block('no_ajax'); ?>
+
 <link rel="stylesheet" href="system/modules/tablelookupwizard/assets/tablelookup.min.css">
 <script>
 window.addEvent('domready', function() {
@@ -65,4 +71,7 @@ window.addEvent('domready', function() {
     }
 });
 </script>
+
+<?php $this->endblock(); ?>
+
 <?php endif; ?>

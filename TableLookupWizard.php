@@ -248,7 +248,7 @@ class TableLookupWizard extends Widget
         $this->prepareOrderBy();
         $this->prepareGroupBy();
 
-        $objTemplate = new \BackendTemplate($this->customContentTpl ?: 'be_widget_tablelookupwizard');
+        $objTemplate = new \BackendTemplate($this->customTpl ?: 'be_widget_tablelookupwizard');
         $objTemplate->noAjax = $blnNoAjax;
         $objTemplate->strId = $this->strId;
         $objTemplate->fieldType = $this->fieldType;

@@ -110,7 +110,7 @@ class TableLookupWizard extends Widget
     protected $arrWhereValues = [];
 
     /**
-     * Limit
+     * Limit.
      */
     protected $intLimit = 30;
 

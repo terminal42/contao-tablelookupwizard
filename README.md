@@ -57,6 +57,9 @@ How to use:
 
         // Adds a "GROUP BY" to the sql statement (optional)
         'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
+        
+        // Adds a "LIMIT" statement to the query
+        'sqlLimit'            => 100, // default is 30
 
         // The search button label
         'searchLabel'         => 'Search my table now!',

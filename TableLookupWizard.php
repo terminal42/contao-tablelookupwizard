@@ -110,6 +110,11 @@ class TableLookupWizard extends Widget
     protected $arrWhereValues = [];
 
     /**
+     * Limit
+     */
+    protected $intLimit = 30;
+
+    /**
      * Custom label.
      *
      * @var array
@@ -165,6 +170,9 @@ class TableLookupWizard extends Widget
                 break;
             case 'customLabels':
                 $this->customLabels = (array) $varValue;
+                break;
+            case 'sqlLimit':
+                $this->intLimit = (int) $varValue;
                 break;
             default:
                 parent::__set($strKey, $varValue);
@@ -323,6 +331,7 @@ class TableLookupWizard extends Widget
 
         $objResults = \Database::getInstance()
             ->prepare(implode(' ', $this->arrQueryProcedure))
+            ->limit($this->intLimit)
             ->execute($this->arrQueryValues);
 
         while ($objResults->next()) {

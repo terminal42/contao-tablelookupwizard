@@ -65,7 +65,11 @@ How to use:
         'searchLabel'         => 'Search my table now!',
 
         // Enables drag n drop sorting of chosen values
-        'enableSorting'       => true
+        'enableSorting'       => true,
+        
+        // Custom template, so you don't need to have your own widget for
+        // smaller adjustments
+        'customTpl' => 'be_widget_tablelookupwizard_custom',
     ),
 
     // SQL field definition

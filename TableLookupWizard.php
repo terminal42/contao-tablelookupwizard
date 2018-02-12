@@ -272,7 +272,7 @@ class TableLookupWizard extends Widget
      */
     public function getBody()
     {
-        $objTemplate = new \BackendTemplate('be_widget_tablelookupwizard_content');
+        $objTemplate = new \BackendTemplate($this->customTpl ?: 'be_widget_tablelookupwizard_content');
         $arrResults = [];
         $blnQuery = true;
 

@@ -301,6 +301,12 @@ class TableLookupWizard extends Widget
             $objTemplate->hasResults = true;
         }
 
+        // Add the message about more results than the limit
+        if (count($arrResults) > $this->intLimit) {
+            $objTemplate->moreResults = true;
+            $objTemplate->moreResultsMessage = $GLOBALS['TL_LANG']['MSC']['tlwMoreResults'];
+        }
+
         // Determine the results message based on keywords availability
         if (\strlen(\Input::get('keywords'))) {
             $noResultsMessage = sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], \Input::get('keywords'));
@@ -331,7 +337,7 @@ class TableLookupWizard extends Widget
 
         $objResults = \Database::getInstance()
             ->prepare(implode(' ', $this->arrQueryProcedure))
-            ->limit($this->intLimit)
+            ->limit($this->intLimit + 1)
             ->execute($this->arrQueryValues);
 
         while ($objResults->next()) {

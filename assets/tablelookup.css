@@ -37,3 +37,8 @@
     width: 20px;
     text-align: right;
 }
+
+.tl_tablelookupwizard tr.more td {
+    text-align: center;
+    background: #eff5fa;
+}

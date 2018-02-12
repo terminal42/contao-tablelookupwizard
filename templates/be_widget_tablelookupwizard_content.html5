@@ -19,6 +19,11 @@
         </td>
     </tr>
     <?php endforeach; ?>
+    <?php if ($this->moreResults): ?>
+        <tr class="found more">
+            <td colspan="<?php echo $this->colspan; ?>"><span class="tl_info"><?php echo $this->moreResultsMessage; ?></span></td>
+        </tr>
+    <?php endif; ?>
 <?php else: ?>
 <tr class="found empty"><td colspan="<?php echo $this->colspan; ?>"><?php echo $this->noResultsMessage; ?></td></tr>
 <?php endif; ?>

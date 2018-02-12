@@ -67,9 +67,10 @@ How to use:
         // Enables drag n drop sorting of chosen values
         'enableSorting'       => true,
         
-        // Custom template, so you don't need to have your own widget for
+        // Custom templates, so you don't need to have your own widget for
         // smaller adjustments
-        'customTpl' => 'be_widget_tablelookupwizard_custom',
+        'customTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard
+        'customContentTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard_content
     ),
 
     // SQL field definition

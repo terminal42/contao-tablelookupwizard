@@ -248,7 +248,7 @@ class TableLookupWizard extends Widget
         $this->prepareOrderBy();
         $this->prepareGroupBy();
 
-        $objTemplate = new \BackendTemplate('be_widget_tablelookupwizard');
+        $objTemplate = new \BackendTemplate($this->customContentTpl ?: 'be_widget_tablelookupwizard');
         $objTemplate->noAjax = $blnNoAjax;
         $objTemplate->strId = $this->strId;
         $objTemplate->fieldType = $this->fieldType;
@@ -272,7 +272,7 @@ class TableLookupWizard extends Widget
      */
     public function getBody()
     {
-        $objTemplate = new \BackendTemplate($this->customTpl ?: 'be_widget_tablelookupwizard_content');
+        $objTemplate = new \BackendTemplate($this->customContentTpl ?: 'be_widget_tablelookupwizard_content');
         $arrResults = [];
         $blnQuery = true;
 

@@ -3,7 +3,7 @@
   "description": "Contao widget to select records from a foreign table. Useful if you have a large set of records.",
   "keywords": ["contao", "widget", "tablelookupwizard"],
   "type": "contao-module",
-  "license": "LGPL-3.0+",
+  "license": "LGPL-3.0-or-later",
   "authors": [
     {
       "name": "terminal42 gmbh",
@@ -11,23 +11,23 @@
     }
   ],
   "require": {
-    "php": ">=5.3.2",
+    "php": "^5.4 || ^7.0",
     "contao/core-bundle": "~3.2 || ^4.1",
     "contao-community-alliance/composer-plugin": "~2.0 || 3.*",
-    "codefog/contao-haste": "4.*"
+    "codefog/contao-haste": "^4.16"
   },
   "replace": {
     "contao-legacy/tablelookupwizard": "self.version"
   },
   "extra":{
-    "branch-alias": {
-      "dev-master": "2.0.x-dev",
-      "dev-develop": "3.0.x-dev"
-    },
     "contao": {
       "sources": {
         "": "system/modules/tablelookupwizard"
       }
     }
+  },
+  "require-dev": {
+    "leofeyer/optimize-native-functions-fixer": "^1.0",
+    "friendsofphp/php-cs-fixer": "^2.10"
   }
 }

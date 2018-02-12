@@ -1,18 +1,15 @@
 <?php
 
-/**
+/*
  * Extension for Contao Open Source CMS
  *
- * Copyright (C) 2013 terminal42 gmbh
- *
+ * @copyright  Copyright (c) 2013 - 2018, terminal42 gmbh
  * @package    TableLookupWizard
- * @link       http://www.terminal42.ch
+ * @author     terminal42 gmbh <info@terminal42.ch>
  * @license    http://opensource.org/licenses/lgpl-3.0.html LGPL
  */
 
-
-
 /**
- * Extension folder
+ * Extension folder.
  */
-$GLOBALS['TL_LANG']['MOD']['tablelookupwizard'] = array('Tabellen-Suchen Eingabefeld');
+$GLOBALS['TL_LANG']['MOD']['tablelookupwizard'] = ['Tabellen-Suchen Eingabefeld'];

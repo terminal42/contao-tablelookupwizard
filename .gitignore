@@ -9,3 +9,7 @@ Thumbs.db
 .build/
 .idea/
 nbproject/
+
+.php_cs.cache
+/vendor
+composer.lock

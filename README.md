@@ -57,12 +57,20 @@ How to use:
 
         // Adds a "GROUP BY" to the sql statement (optional)
         'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
+        
+        // Adds a "LIMIT" statement to the query
+        'sqlLimit'            => 100, // default is 30
 
         // The search button label
         'searchLabel'         => 'Search my table now!',
 
         // Enables drag n drop sorting of chosen values
-        'enableSorting'       => true
+        'enableSorting'       => true,
+        
+        // Custom templates, so you don't need to have your own widget for
+        // smaller adjustments
+        'customTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard
+        'customContentTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard_content
     ),
 
     // SQL field definition

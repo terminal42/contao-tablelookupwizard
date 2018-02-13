@@ -12,4 +12,4 @@
 /**
  * Extension folder.
  */
-$GLOBALS['TL_LANG']['MOD']['tablelookupwizard'] = ['Table Lookup Wizard'];
+$GLOBALS['TL_LANG']['MOD']['tablelookupwizard'] = ['Assistant de recherche de table'];

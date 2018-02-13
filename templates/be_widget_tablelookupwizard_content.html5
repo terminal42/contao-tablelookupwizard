@@ -1,6 +1,6 @@
 <?php if ($this->hasResults): ?>
 <?php foreach ($this->results as $arrResult): ?>
-    <tr class="<?php echo $arrResult['rowClass']; ?><?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked']): ?> selected<?php endif; ?>">
+    <tr data-row class="<?php echo $arrResult['rowClass']; ?><?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked']): ?> selected<?php endif; ?>">
         <td class="col_0 col_first">
             <?php if ($this->fieldType == 'radio'): ?>
                 <input type="radio" class="radio" name="<?php echo $this->strId; ?>" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked']):?> checked="checked"<?php endif; ?>>
@@ -8,8 +8,8 @@
                 <input type="checkbox" class="checkbox" name="<?php echo $this->strId; ?>[]" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked']):?> checked="checked"<?php endif; ?>>
             <?php endif; ?>
             <?php $i = 1; ?>
-            <?php foreach ($arrResult['formattedData'] as $varData): ?>
-            <td class="col_<?php echo $i++; ?>"><?php echo $varData; ?></td>
+            <?php foreach ($arrResult['formattedData'] as $k => $varData): ?>
+            <td class="col_<?php echo $i++; ?>" data-<?php echo standardize($k) ?>><?php echo $varData; ?></td>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
                 <td class="operations">
@@ -19,6 +19,11 @@
         </td>
     </tr>
     <?php endforeach; ?>
+    <?php if ($this->moreResults): ?>
+        <tr class="found more">
+            <td colspan="<?php echo $this->colspan; ?>"><span class="tl_info"><?php echo $this->moreResultsMessage; ?></span></td>
+        </tr>
+    <?php endif; ?>
 <?php else: ?>
 <tr class="found empty"><td colspan="<?php echo $this->colspan; ?>"><?php echo $this->noResultsMessage; ?></td></tr>
 <?php endif; ?>

@@ -296,8 +296,8 @@ class TableLookupWizard extends Widget
         }
 
         // Add the message about more results than the limit
-        if (count($arrResults) > $this->intLimit) {
-            $arrResults = array_slice($arrResults, 0, $this->intLimit);
+        if (\count($arrResults) > $this->intLimit) {
+            $arrResults = \array_slice($arrResults, 0, $this->intLimit);
 
             $objTemplate->moreResults = true;
             $objTemplate->moreResultsMessage = $GLOBALS['TL_LANG']['MSC']['tlwMoreResults'];

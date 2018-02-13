@@ -79,6 +79,7 @@ var TableLookupWizard = (function() {
                         event.target.getParent('tr').getAllPrevious().destroy();
                     } else {
                         event.target.getParent('tr').destroy();
+                        window.fireEvent('tableLookupWizard_postModified', { name: name, operation: 'unselected', element: event.target.getParent('tr') });
                     }
 
                     widget.send(href);

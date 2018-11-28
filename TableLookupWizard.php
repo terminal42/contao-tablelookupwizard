@@ -256,7 +256,7 @@ class TableLookupWizard extends Widget
         $objTemplate->noAjaxUrl = $this->addToUrl('noajax=1');
         $objTemplate->listFields = $this->arrListFields;
         $objTemplate->colspan = \count($this->arrListFields) + (int) $this->blnEnableSorting;
-        $objTemplate->searchLabel = '' === $this->searchLabel ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel;
+        $objTemplate->searchLabel = !$this->searchLabel ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel;
         $objTemplate->columnLabels = $this->getColumnLabels();
         $objTemplate->hasValues = $this->blnHasValues;
         $objTemplate->enableSorting = $this->blnEnableSorting;

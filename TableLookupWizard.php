@@ -296,7 +296,7 @@ class TableLookupWizard extends Widget
         }
 
         // Add the message about more results than the limit
-        if (\count($arrResults) > $this->intLimit) {
+        if ($this->blnIsAjaxRequest && \Input::get('keywords') && \count($arrResults) > $this->intLimit) {
             $arrResults = \array_slice($arrResults, 0, $this->intLimit);
 
             $objTemplate->moreResults = true;

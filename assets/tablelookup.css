@@ -42,3 +42,11 @@
     text-align: center;
     background: #eff5fa;
 }
+
+body[class*="version_4"] .tl_tablelookupwizard tr.more td {
+    background: #e9f0f7;
+}
+
+body[class*="version_4"] .tl_tablelookupwizard tr.more td span.tl_info {
+    display: inline-block;
+}

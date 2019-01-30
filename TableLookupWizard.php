@@ -330,11 +330,14 @@ class TableLookupWizard extends Widget
     protected function getResults()
     {
         $arrResults = [];
+        $objStatement = \Database::getInstance()->prepare(implode(' ', $this->arrQueryProcedure));
 
-        $objResults = \Database::getInstance()
-            ->prepare(implode(' ', $this->arrQueryProcedure))
-            ->limit($this->intLimit + 1)
-            ->execute($this->arrQueryValues);
+        // Apply the limit only for the search results and not the current values
+        if ($this->blnIsAjaxRequest && \Input::get('keywords')) {
+            $objStatement->limit($this->intLimit + 1);
+        }
+
+        $objResults = $objStatement->execute($this->arrQueryValues);
 
         while ($objResults->next()) {
             $arrRow = $objResults->row();

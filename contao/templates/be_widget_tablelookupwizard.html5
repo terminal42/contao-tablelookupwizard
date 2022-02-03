@@ -27,7 +27,7 @@
              </td>
         </tr>
 
-        <?php if ($this->fieldType == 'radio'): ?>
+        <?php if ('radio' === $this->fieldType): ?>
         <tr class="reset">
             <td><input type="radio" class="radio" name="reset_<?php echo $this->strId; ?>" id="reset_<?php echo $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
             <td colspan="<?php echo $this->colspan; ?>"><label for="reset_<?php echo $this->strId; ?>" class="tl_change_selected"><?php echo $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
@@ -48,7 +48,7 @@
 
 <?php $this->block('no_ajax'); ?>
 
-<link rel="stylesheet" href="system/modules/tablelookupwizard/assets/tablelookup.min.css">
+<link rel="stylesheet" href="/bundles/terminal42tablelookupwizard/tablelookup.min.css">
 <script>
 window.addEvent('domready', function() {
     function init() {
@@ -60,7 +60,7 @@ window.addEvent('domready', function() {
     if (!window.TableLookupWizard) {
         var wizard = document.createElement('script');
         wizard.type = 'text/javascript';
-        wizard.src = 'system/modules/tablelookupwizard/assets/tablelookup.min.js';
+        wizard.src = '/bundles/terminal42tablelookupwizard/tablelookup.min.js';
         wizard.onload = init;
         wizard.onreadystatechange = init;
 

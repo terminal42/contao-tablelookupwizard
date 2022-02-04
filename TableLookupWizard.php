@@ -407,9 +407,9 @@ class TableLookupWizard extends Widget
 
         // Filter those that have already been chosen
         if ('checkbox' === $this->fieldType && \is_array($varData) && !empty($varData)) {
-            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', $varData).')';
+            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', array_map('intval', $varData)).')';
         } elseif ('radio' === $this->fieldType && '' !== $varData) {
-            $this->arrWhereProcedure[] = "{$this->foreignTable}.id!='$varData'";
+            $this->arrWhereProcedure[] = $this->foreignTable.'.id!='.(int) $varData;
         }
 
         // If custom WHERE is set, add it to the statement

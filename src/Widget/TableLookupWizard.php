@@ -162,7 +162,7 @@ class TableLookupWizard extends Widget
             $this->prepareOrderBy();
             $this->prepareGroupBy();
 
-            throw new ResponseException(new JsonResponse(['content' => $this->getBody(), 'token' => REQUEST_TOKEN]));
+            throw new ResponseException(new JsonResponse(['content' => $this->getBody(), 'token' => Input::get('rt')]));
         }
 
         $this->prepareSelect();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Terminal42\TableLookupWizardBundle\Widget;
 
+use Codefog\HasteBundle\Formatter;
 use Contao\Backend;
 use Contao\BackendTemplate;
 use Contao\Controller;
@@ -13,8 +14,6 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
-use Haste\Generator\RowClass;
-use Haste\Util\Format;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -163,7 +162,7 @@ class TableLookupWizard extends Widget
             $this->prepareOrderBy();
             $this->prepareGroupBy();
 
-            throw new ResponseException(new JsonResponse(['content' => $this->getBody(), 'token' => REQUEST_TOKEN]));
+            throw new ResponseException(new JsonResponse(['content' => $this->getBody(), 'token' => Input::get('rt')]));
         }
 
         $this->prepareSelect();
@@ -207,14 +206,6 @@ class TableLookupWizard extends Widget
 
         if ($blnQuery) {
             $arrResults = $this->getResults();
-
-            RowClass::withKey('rowClass')
-                ->addCustom('row')
-                ->addCount('row_')
-                ->addFirstLast('row_')
-                ->addEvenOdd('row_')
-                ->applyTo($arrResults)
-            ;
         }
 
         if (!empty($arrResults)) {
@@ -274,7 +265,7 @@ class TableLookupWizard extends Widget
             foreach ($this->arrListFields as $strField) {
                 [$strTable, $strColumn] = explode('.', $strField);
                 $strFieldKey = str_replace('.', '_', $strField);
-                $arrResults[$strKey]['formattedData'][$strFieldKey] = Format::dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
+                $arrResults[$strKey]['formattedData'][$strFieldKey] = System::getContainer()->get(Formatter::class)->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
             }
         }
 
@@ -407,19 +398,11 @@ class TableLookupWizard extends Widget
             } else {
                 // Get the label from DCA
                 [$strTable, $strColumn] = explode('.', $strField);
-                $label = Format::dcaLabel($strTable, $strColumn);
+                $label = System::getContainer()->get(Formatter::class)->dcaLabel($strTable, $strColumn);
             }
 
             $arrLabels[StringUtil::standardize($strField)]['label'] = $label;
         }
-
-        RowClass::withKey('rowClass')
-            ->addCustom('row')
-            ->addCount('row_')
-            ->addFirstLast('row_')
-            ->addEvenOdd('row_')
-            ->applyTo($arrLabels)
-        ;
 
         return $arrLabels;
     }

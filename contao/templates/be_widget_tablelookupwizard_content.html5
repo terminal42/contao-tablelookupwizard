@@ -1,6 +1,6 @@
 <?php if ($this->hasResults): ?>
 <?php foreach ($this->results as $arrResult): ?>
-    <tr data-row class="<?php echo $arrResult['rowClass']; ?><?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
+    <tr data-row class="<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
         <td class="col_0 col_first">
             <?php if ('radio' === $this->fieldType): ?>
                 <input type="radio" class="radio" name="<?php echo $this->strId; ?>" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
@@ -9,7 +9,7 @@
             <?php endif; ?>
             <?php $i = 1; ?>
             <?php foreach ($arrResult['formattedData'] as $k => $varData): ?>
-            <td class="col_<?php echo $i++; ?>" data-<?php echo standardize($k) ?>><?php echo $varData; ?></td>
+            <td class="col_<?php echo $i++; ?>" data-<?php echo \Contao\StringUtil::standardize($k) ?>><?php echo $varData; ?></td>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
                 <td class="operations">

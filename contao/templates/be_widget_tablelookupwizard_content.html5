@@ -1,6 +1,6 @@
 <?php if ($this->hasResults): ?>
 <?php foreach ($this->results as $arrResult): ?>
-    <tr data-row class="<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
+    <tr data-row class="row<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
         <td class="col_0 col_first">
             <?php if ('radio' === $this->fieldType): ?>
                 <input type="radio" class="radio" name="<?php echo $this->strId; ?>" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>

@@ -234,7 +234,7 @@ class TableLookupWizard extends Widget
         $objTemplate->isAjax = $this->blnIsAjaxRequest;
         $objTemplate->strId = $this->strId;
         $objTemplate->enableSorting = $this->blnEnableSorting;
-        $objTemplate->dragHandleIcon = 'system/themes/'.Backend::getTheme().'/images/drag.gif';
+        $objTemplate->dragHandleIcon = 'system/themes/'.Backend::getTheme().'/icons/drag.svg';
 
         return $objTemplate->parse();
     }

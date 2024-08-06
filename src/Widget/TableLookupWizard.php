@@ -249,7 +249,7 @@ class TableLookupWizard extends Widget
             $objStatement->limit($this->intLimit + 1);
         }
 
-        $objResults = $objStatement->execute($this->arrQueryValues);
+        $objResults = $objStatement->execute(...$this->arrQueryValues);
 
         while ($objResults->next()) {
             $arrRow = $objResults->row();

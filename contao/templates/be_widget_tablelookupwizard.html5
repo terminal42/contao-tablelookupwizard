@@ -1,12 +1,12 @@
 <?php $this->block('table'); ?>
 
-<table cellspacing="0" cellpadding="0" id="ctrl_<?php echo $this->strId; ?>" class="tl_tablelookupwizard tl_listing">
+<table cellspacing="0" cellpadding="0" id="ctrl_<?= $this->strId; ?>" class="tl_tablelookupwizard tl_listing">
     <thead>
         <tr>
             <th class="head_0 col_first tl_folder_tlist">&nbsp;</th>
 
             <?php foreach($this->columnLabels as $k => $arrColumnLabel): ?>
-            <th class="head_<?php echo $k; ?> tl_folder_tlist"><?php echo $arrColumnLabel['label']; ?></th>
+            <th class="head_<?= $k; ?> tl_folder_tlist"><?= $arrColumnLabel['label']; ?></th>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
             <th class="tl_folder_tlist"></th>
@@ -15,28 +15,28 @@
     </thead>
     <tbody>
 
-        <?php echo $this->body; ?>
+        <?= $this->body; ?>
 
         <tr class="jserror">
-            <td colspan="<?php echo $this->colspan + 1; ?>">
-                <p class="tl_error"><?php echo $GLOBALS['TL_LANG']['MSC']['tlwNoJs']; ?></p>;
+            <td colspan="<?= $this->colspan + 1; ?>">
+                <p class="tl_error"><?= $GLOBALS['TL_LANG']['MSC']['tlwNoJs']; ?></p>;
 
                 <?php if ($this->fallbackEnabled): ?>
-                <a href="<?php echo $this->noAjaxUrl; ?>"><?php echo $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']; ?></a>
+                <a href="<?= $this->noAjaxUrl; ?>"><?= $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']; ?></a>
                 <?php endif; ?>
              </td>
         </tr>
 
         <?php if ('radio' === $this->fieldType): ?>
         <tr class="reset">
-            <td><input type="radio" class="radio" name="reset_<?php echo $this->strId; ?>" id="reset_<?php echo $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
-            <td colspan="<?php echo $this->colspan; ?>"><label for="reset_<?php echo $this->strId; ?>" class="tl_change_selected"><?php echo $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
+            <td><input type="radio" class="radio" name="reset_<?= $this->strId; ?>" id="reset_<?= $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
+            <td colspan="<?= $this->colspan; ?>"><label for="reset_<?= $this->strId; ?>" class="tl_change_selected"><?= $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
         </tr>
         <?php endif; ?>
 
         <tr class="search" style="display:none">
-            <td colspan="<?php echo $this->colspan + 1; ?>"><label for="ctrl_<?php echo $this->strId; ?>_search"><?php echo $this->searchLabel; ?>:</label>
-                <input type="text" id="ctrl_<?php echo $this->strId; ?>_search" name="keywords" class="tl_text" autocomplete="off">
+            <td colspan="<?= $this->colspan + 1; ?>"><label for="ctrl_<?= $this->strId; ?>_search"><?= $this->searchLabel; ?>:</label>
+                <input type="text" id="ctrl_<?= $this->strId; ?>_search" name="keywords" class="tl_text" autocomplete="off">
             </td>
         </tr>
     </tbody>
@@ -52,8 +52,8 @@
 <script>
 window.addEvent('domready', function() {
     function init() {
-        new TableLookupWizard('<?php echo $this->strId; ?>', {
-            enableSorting: <?php echo $this->enableSorting ? 'true' : 'false'; ?>
+        new TableLookupWizard('<?= $this->strId; ?>', {
+            enableSorting: <?= $this->enableSorting ? 'true' : 'false'; ?>
         });
     }
 

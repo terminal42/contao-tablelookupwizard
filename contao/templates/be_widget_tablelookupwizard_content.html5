@@ -3,17 +3,17 @@
     <tr data-row class="row<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
         <td class="col_0 col_first">
             <?php if ('radio' === $this->fieldType): ?>
-                <input type="radio" class="radio" name="<?php echo $this->strId; ?>" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
+                <input type="radio" class="radio" name="<?= $this->strId; ?>" value="<?= $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
             <?php else: ?>
-                <input type="checkbox" class="checkbox" name="<?php echo $this->strId; ?>[]" value="<?php echo $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
+                <input type="checkbox" class="checkbox" name="<?= $this->strId; ?>[]" value="<?= $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
             <?php endif; ?>
             <?php $i = 1; ?>
             <?php foreach ($arrResult['formattedData'] as $k => $varData): ?>
-            <td class="col_<?php echo $i++; ?>" data-<?php echo \Contao\StringUtil::standardize($k) ?>><?php echo $varData; ?></td>
+            <td class="col_<?= $i++; ?>" data-<?= Contao\StringUtil::standardize($k) ?>><?= $varData; ?></td>
             <?php endforeach; ?>
             <?php if ($this->enableSorting): ?>
                 <td class="operations">
-                    <img src="<?php echo $this->dragHandleIcon; ?>" width="14" height="16" alt="" class="drag-handle"<?php if ($this->isAjax): ?> style="display:none"<?php endif; ?>>
+                    <img src="<?= $this->dragHandleIcon; ?>" width="14" height="16" alt="" class="drag-handle"<?php if ($this->isAjax): ?> style="display:none"<?php endif; ?>>
                 </td>
             <?php endif; ?>
         </td>
@@ -21,9 +21,9 @@
     <?php endforeach; ?>
     <?php if ($this->moreResults): ?>
         <tr class="found more">
-            <td colspan="<?php echo $this->colspan; ?>"><span class="tl_info"><?php echo $this->moreResultsMessage; ?></span></td>
+            <td colspan="<?= $this->colspan; ?>"><span class="tl_info"><?= $this->moreResultsMessage; ?></span></td>
         </tr>
     <?php endif; ?>
 <?php else: ?>
-<tr class="found empty"><td colspan="<?php echo $this->colspan; ?>"><?php echo $this->noResultsMessage; ?></td></tr>
+<tr class="found empty"><td colspan="<?= $this->colspan; ?>"><?= $this->noResultsMessage; ?></td></tr>
 <?php endif; ?>

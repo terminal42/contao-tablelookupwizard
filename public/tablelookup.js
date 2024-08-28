@@ -64,9 +64,6 @@ var TableLookupWizard = (function() {
             initSortables();
         }
 
-        widget.getElement('.jserror').setStyle('display', 'none');
-        widget.getElement('.search').setStyle('display', (((Browser.ie && Browser.version < 8) || (Browser.Engine && Browser.Engine.trident && Browser.Engine.version < 6)) ? 'block' : 'table-row'));
-
         widget.getElements('tbody tr').forEach(function(row) {
 
             var check = row.getElement('input[type=checkbox]') || row.getElement('input[type=radio]');
@@ -97,7 +94,7 @@ var TableLookupWizard = (function() {
                     text = JSON.decode(text).content;
                 } catch (error){}
 
-                widget.getElements('.search input.tl_text').setStyle('background-image', 'none');
+                widget.getElements('.search input.tl_text').removeClass('loading');
                 widget.getElements('tr.found').destroy();
 
                 rows = Elements.from(text, false);
@@ -116,7 +113,7 @@ var TableLookupWizard = (function() {
         }).addEvent('keyup', function() {
             clearTimeout(timer);
             timer = setTimeout(function() {
-                widget.getElement('.search input.tl_text').setStyle('background-image', 'url(/bundles/terminal42tablelookupwizard/loading.gif)');
+                widget.getElement('.search input.tl_text').addClass('loading');
                 widget.send(href);
             }, 300);
         });

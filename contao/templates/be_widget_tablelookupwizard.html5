@@ -17,26 +17,32 @@
 
         <?= $this->body; ?>
 
-        <tr class="jserror">
-            <td colspan="<?= $this->colspan + 1; ?>">
-                <p class="tl_error"><?= $GLOBALS['TL_LANG']['MSC']['tlwNoJs']; ?></p>;
-
-                <?php if ($this->fallbackEnabled): ?>
-                <a href="<?= $this->noAjaxUrl; ?>"><?= $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']; ?></a>
-                <?php endif; ?>
+        <noscript>
+          <tr class="jserror">
+            <td class="tl_file" colspan="<?= $this->colspan + 1; ?>">
+              <div class="tl_message tl_error">
+                  <span><?= $GLOBALS['TL_LANG']['MSC']['tlwNoJs']; ?></span>
+                  <?php if ($this->fallbackEnabled): ?>
+                    <a href="<?= $this->noAjaxUrl; ?>"><?= $GLOBALS['TL_LANG']['MSC']['tlwJsAlternative']; ?></a>
+                  <?php endif; ?>
+              </div>
              </td>
-        </tr>
+          </tr>
+        </noscript>
 
         <?php if ('radio' === $this->fieldType): ?>
-        <tr class="reset">
-            <td><input type="radio" class="radio" name="reset_<?= $this->strId; ?>" id="reset_<?= $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
-            <td colspan="<?= $this->colspan; ?>"><label for="reset_<?= $this->strId; ?>" class="tl_change_selected"><?= $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
+        <tr class="reset hover-row">
+            <td class="tl_file"><input type="radio" class="radio" name="reset_<?= $this->strId; ?>" id="reset_<?= $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
+            <td class="tl_file" colspan="<?= $this->colspan; ?>"><label for="reset_<?= $this->strId; ?>" class="tl_change_selected"><?= $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
         </tr>
         <?php endif; ?>
 
-        <tr class="search" style="display:none">
-            <td colspan="<?= $this->colspan + 1; ?>"><label for="ctrl_<?= $this->strId; ?>_search"><?= $this->searchLabel; ?>:</label>
+        <tr class="search">
+            <td class="tl_folder_tlist" colspan="<?= $this->colspan + 1; ?>">
+              <div class="search_inner">
+                <label for="ctrl_<?= $this->strId; ?>_search"><?= $this->searchLabel; ?>:</label>
                 <input type="text" id="ctrl_<?= $this->strId; ?>_search" name="keywords" class="tl_text" autocomplete="off">
+              </div>
             </td>
         </tr>
     </tbody>

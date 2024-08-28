@@ -1,29 +1,29 @@
 <?php if ($this->hasResults): ?>
 <?php foreach ($this->results as $arrResult): ?>
-    <tr data-row class="row<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
-        <td class="col_0 col_first">
+    <tr data-row class="row hover-row<?php if ($this->isAjax):?> found<?php endif; ?><?php if ($arrResult['isChecked'] ?? false): ?> selected<?php endif; ?>">
+        <td class="col_0 col_first tl_file">
             <?php if ('radio' === $this->fieldType): ?>
                 <input type="radio" class="radio" name="<?= $this->strId; ?>" value="<?= $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
             <?php else: ?>
                 <input type="checkbox" class="checkbox" name="<?= $this->strId; ?>[]" value="<?= $arrResult['rowId']; ?>"<?php if ($arrResult['isChecked'] ?? false):?> checked="checked"<?php endif; ?>>
             <?php endif; ?>
-            <?php $i = 1; ?>
-            <?php foreach ($arrResult['formattedData'] as $k => $varData): ?>
-            <td class="col_<?= $i++; ?>" data-<?= Contao\StringUtil::standardize($k) ?>><?= $varData; ?></td>
-            <?php endforeach; ?>
-            <?php if ($this->enableSorting): ?>
-                <td class="operations">
-                    <img src="<?= $this->dragHandleIcon; ?>" width="14" height="16" alt="" class="drag-handle"<?php if ($this->isAjax): ?> style="display:none"<?php endif; ?>>
-                </td>
-            <?php endif; ?>
         </td>
+        <?php $i = 1; ?>
+        <?php foreach ($arrResult['formattedData'] as $k => $varData): ?>
+        <td class="col_<?= $i++; ?> tl_file" data-<?= Contao\StringUtil::standardize($k) ?>><?= $varData; ?></td>
+        <?php endforeach; ?>
+        <?php if ($this->enableSorting): ?>
+            <td class="operations tl_file">
+                <img src="<?= $this->dragHandleIcon; ?>" width="14" height="16" alt="" class="drag-handle"<?php if ($this->isAjax): ?> style="display:none"<?php endif; ?>>
+            </td>
+        <?php endif; ?>
     </tr>
     <?php endforeach; ?>
     <?php if ($this->moreResults): ?>
         <tr class="found more">
-            <td colspan="<?= $this->colspan; ?>"><span class="tl_info"><?= $this->moreResultsMessage; ?></span></td>
+            <td class="tl_file" colspan="<?= $this->colspan; ?>"><?= $this->moreResultsMessage; ?></td>
         </tr>
     <?php endif; ?>
 <?php else: ?>
-<tr class="found empty"><td colspan="<?= $this->colspan; ?>"><?= $this->noResultsMessage; ?></td></tr>
+<tr class="found empty"><td class="tl_file" colspan="<?= $this->colspan; ?>"><?= $this->noResultsMessage; ?></td></tr>
 <?php endif; ?>

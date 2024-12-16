@@ -32,7 +32,7 @@
 
         <?php if ('radio' === $this->fieldType): ?>
         <tr class="reset hover-row">
-            <td class="tl_file"><input type="radio" class="radio" name="reset_<?= $this->strId; ?>" id="reset_<?= $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
+            <td class="tl_file"><input type="radio" class="radio" name="<?= $this->strId; ?>" id="reset_<?= $this->strId; ?>" value=""<?php if (!$this->hasValues): ?> checked="checked"<?php endif; ?>></td>
             <td class="tl_file" colspan="<?= $this->colspan; ?>"><label for="reset_<?= $this->strId; ?>" class="tl_change_selected"><?= $GLOBALS['TL_LANG']['MSC']['resetSelected']; ?></label></td>
         </tr>
         <?php endif; ?>

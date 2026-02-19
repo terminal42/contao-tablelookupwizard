@@ -1,0 +1,60 @@
+{% trans_default_domain "contao_default" %}
+
+{% set colspan = header_fields|length + 1 + (sortable ? 1 : 0) %}
+
+{% block results %}
+    {% for result in results %}
+        {% block result %}
+            {% set row_attributes = attrs()
+                .addClass(['row', 'hover-row'])
+            %}
+            <tr{{ row_attributes }}>
+                {% if sortable %}
+                    <td class="tl_file tablelookupwizard__records-operation">
+                        {% set drag_handle_attributes = attrs()
+                            .set('type', 'button')
+                            .set('data-action', 'keydown->contao--sortable#move')
+                            .addClass('drag-handle')
+                        %}
+                        <button{{ drag_handle_attributes }}>{{ backend_icon('drag.svg', 'MSC.move'|trans) }}</button>
+                    </td>
+                {% endif %}
+
+                <td class="tl_file tablelookupwizard__records-operation">
+                    {% set input_attributes = attrs()
+                        .set('type', 'hidden')
+                        .set('value', result.rowId)
+                        .set('name', input_name)
+                        .set('disabled', not result.isChecked)
+                    %}
+                    <input{{ input_attributes }}>
+
+                    <div class="operations">
+                        <button class="tablelookupwizard__button-add" type="button" data-action="click->terminal42--tablelookupwizard#select:prevent">
+                            <img src="{{ button_add }}" width="16" height="16" alt="">
+                        </button>
+                        <button class="tablelookupwizard__button-remove" type="button" data-action="click->terminal42--tablelookupwizard#unselect:prevent">
+                            <img src="{{ button_remove }}" width="16" height="16" alt="">
+                        </button>
+                    </div>
+                </td>
+
+                {% for key, value in result.formattedData %}
+                    {% block result_value %}
+                        <td class="tl_file">
+                            {{ value|raw }}
+                        </td>
+                    {% endblock %}
+                {% endfor %}
+            </tr>
+        {% endblock %}
+    {% endfor %}
+
+    {% block more_results %}
+        {% if has_more_results %}
+            <tr class="tablelookupwizard__records-more">
+                <td class="tl_file" colspan="{{ colspan }}">{{ 'MSC.tlwMoreResults'|trans }}</td>
+            </tr>
+        {% endif %}
+    {% endblock %}
+{% endblock %}

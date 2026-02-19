@@ -10,20 +10,22 @@ use Contao\BackendTemplate;
 use Contao\Controller;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\Database;
+use Contao\Image;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @property string $fieldType
+ * @property boolean $multiple
  * @property string $foreignTable
  * @property string $sqlWhere
  * @property string $sqlOrderBy
  * @property string $sqlGroupBy
  * @property string $searchLabel
- * @property string $customContentTpl
+ * @property string $customRecordsTpl
  */
 class TableLookupWizard extends Widget
 {
@@ -32,14 +34,9 @@ class TableLookupWizard extends Widget
     protected $strTemplate = 'be_widget';
 
     /**
-     * Check if there are already id's stored stored.
-     */
-    protected bool $blnHasValues = false;
-
-    /**
      * Check if this is an ajax request.
      */
-    protected bool $blnIsAjaxRequest = false;
+    protected bool $isAjaxRequest = false;
 
     /**
      * SQL search operator.
@@ -47,14 +44,9 @@ class TableLookupWizard extends Widget
     protected string $strOperator = ' OR ';
 
     /**
-     * Javascript (Ajax) fallback.
-     */
-    protected bool $blnEnableFallback = true;
-
-    /**
      * Enable drag n drop sorting.
      */
-    protected bool $blnEnableSorting = false;
+    protected bool $isSortable = false;
 
     protected array $arrSearchFields = [];
 
@@ -72,7 +64,7 @@ class TableLookupWizard extends Widget
 
     protected int $intLimit = 30;
 
-    protected array $customLabels = [];
+    protected array $headerFields = [];
 
     public function __set($strKey, $varValue): void
     {
@@ -100,7 +92,7 @@ class TableLookupWizard extends Widget
                 parent::__set($strKey, $varValue);
                 break;
 
-            case 'matchAllKeywords':
+            case 'searchMatchAll':
                 $this->strOperator = $varValue ? ' AND ' : ' OR ';
                 break;
 
@@ -112,20 +104,20 @@ class TableLookupWizard extends Widget
                 $this->blnEnableFallback = !$varValue;
                 break;
 
-            case 'enableSorting':
-                if ('checkbox' !== $this->fieldType) {
-                    throw new \RuntimeException('You cannot make a non-checkbox field type sortable!');
+            case 'isSortable':
+                if (!$this->multiple) {
+                    throw new \RuntimeException('The field must allow multiple values to be sortable!');
                 }
 
-                $this->blnEnableSorting = (bool) $varValue;
+                $this->isSortable = (bool) $varValue;
                 break;
 
-            case 'joins':
+            case 'sqlJoins':
                 $this->arrJoins = $varValue;
                 break;
 
-            case 'customLabels':
-                $this->customLabels = (array) $varValue;
+            case 'headerFields':
+                $this->headerFields = (array) $varValue;
                 break;
 
             case 'sqlLimit':
@@ -149,103 +141,68 @@ class TableLookupWizard extends Widget
 
     public function generate(): string
     {
-        $blnNoAjax = Input::get('noajax');
-        $arrIds = StringUtil::deserialize($this->varValue, true);
-
-        if (!($arrIds[0] ?? false)) {
-            $arrIds = [0];
-        } else {
-            $this->blnHasValues = true;
-        }
-
-        $this->blnIsAjaxRequest = Input::get('tableLookupWizard') === $this->strId;
+        $this->isAjaxRequest = Input::get('tableLookupWizard') === $this->strId;
 
         // Ensure search and list fields have correct aliases
         $this->ensureColumnAliases($this->arrSearchFields);
         $this->ensureColumnAliases($this->arrListFields);
 
-        if ($this->blnIsAjaxRequest) {
-            $this->prepareSelect();
-            $this->prepareJoins();
-            $this->prepareWhere();
-            $this->prepareOrderBy();
-            $this->prepareGroupBy();
-
-            throw new ResponseException(new JsonResponse(['content' => $this->getBody(), 'token' => Input::get('rt')]));
+        if ($this->isAjaxRequest) {
+            throw new ResponseException(new Response($this->getRecords()));
         }
 
+        $ids = StringUtil::deserialize($this->varValue, true);
+
+        if (empty($ids) || !is_array($ids)) {
+            $ids = [0];
+        }
+
+        return System::getContainer()->get('twig')->render(sprintf('@Contao/%s.html.twig', $this->customTpl ?: 'backend/widget/tablelookupwizard'), [
+            'css_class' => $this->strClass,
+            'header_fields' => $this->getHeaderFields(),
+            'id' => $this->strId,
+            'multiple' => $this->multiple,
+            'name' => $this->strName,
+            'records' => $this->getRecords(where: [sprintf('%s.id IN (%s)', $this->foreignTable, implode(',', $ids))]),
+            'search_label' => $this->searchLabel,
+            'sortable' => $this->isSortable,
+        ]);
+    }
+
+    public function getRecords(array $where = []): string
+    {
         $this->prepareSelect();
         $this->prepareJoins();
-
-        // Add preselect to WHERE statement
-        $this->arrWhereProcedure[] = $this->foreignTable.'.id IN ('.implode(',', $arrIds).')';
-
-        $this->prepareWhere();
+        $this->prepareWhere($where);
         $this->prepareOrderBy();
         $this->prepareGroupBy();
 
-        /** @var BackendTemplate&object $objTemplate */
-        $objTemplate = new BackendTemplate($this->customTpl ?: 'be_widget_tablelookupwizard');
-        $objTemplate->noAjax = $blnNoAjax;
-        $objTemplate->strId = $this->strId;
-        $objTemplate->fieldType = $this->fieldType;
-        $objTemplate->fallbackEnabled = $this->blnEnableFallback;
-        $objTemplate->noAjaxUrl = Controller::addToUrl('noajax=1');
-        $objTemplate->listFields = $this->arrListFields;
-        $objTemplate->colspan = \count($this->arrListFields) + (int) $this->blnEnableSorting;
-        $objTemplate->searchLabel = !$this->searchLabel ? $GLOBALS['TL_LANG']['MSC']['searchLabel'] : $this->searchLabel;
-        $objTemplate->columnLabels = $this->getColumnLabels();
-        $objTemplate->hasValues = $this->blnHasValues;
-        $objTemplate->enableSorting = $this->blnEnableSorting;
-        $objTemplate->body = $this->getBody();
+        $results = [];
+        $keywords = Input::get('keywords');
 
-        return $objTemplate->parse();
-    }
-
-    public function getBody(): string
-    {
-        /** @var BackendTemplate&object $objTemplate */
-        $objTemplate = new BackendTemplate($this->customContentTpl ?: 'be_widget_tablelookupwizard_content');
-        $arrResults = [];
-        $blnQuery = true;
-
-        if ($this->blnIsAjaxRequest && !Input::get('keywords')) {
-            $blnQuery = false;
+        if (!$this->isAjaxRequest || $keywords) {
+            $results = $this->getResults();
         }
 
-        if ($blnQuery) {
-            $arrResults = $this->getResults();
-        }
-
-        if (!empty($arrResults)) {
-            $objTemplate->hasResults = true;
-        }
+        $hasMoreResults = false;
 
         // Add the message about more results than the limit
-        if ($this->blnIsAjaxRequest && Input::get('keywords') && \count($arrResults) > $this->intLimit) {
-            $arrResults = \array_slice($arrResults, 0, $this->intLimit);
-
-            $objTemplate->moreResults = true;
-            $objTemplate->moreResultsMessage = $GLOBALS['TL_LANG']['MSC']['tlwMoreResults'];
+        if ($this->isAjaxRequest && $keywords && \count($results) > $this->intLimit) {
+            $results = \array_slice($results, 0, $this->intLimit);
+            $hasMoreResults = true;
         }
 
-        // Determine the results message based on keywords availability
-        if (!empty(Input::get('keywords'))) {
-            $noResultsMessage = \sprintf($GLOBALS['TL_LANG']['MSC']['tlwNoResults'], Input::get('keywords'));
-        } else {
-            $noResultsMessage = $GLOBALS['TL_LANG']['MSC']['tlwNoValue'];
-        }
-
-        $objTemplate->results = $arrResults;
-        $objTemplate->colspan = \count($this->arrListFields) + 1 + (int) $this->blnEnableSorting;
-        $objTemplate->noResultsMessage = $noResultsMessage;
-        $objTemplate->fieldType = $this->fieldType;
-        $objTemplate->isAjax = $this->blnIsAjaxRequest;
-        $objTemplate->strId = $this->strId;
-        $objTemplate->enableSorting = $this->blnEnableSorting;
-        $objTemplate->dragHandleIcon = 'system/themes/'.Backend::getTheme().'/icons/drag.svg';
-
-        return $objTemplate->parse();
+        return System::getContainer()->get('twig')->render(sprintf('@Contao/%s.html.twig', $this->customRecordsTpl ?: 'backend/widget/tablelookupwizard_records'), [
+            'button_add' => Image::getUrl('new.svg'),
+            'button_remove' => Image::getUrl('delete.svg'),
+            'has_more_results' => $hasMoreResults,
+            'header_fields' => $this->getHeaderFields(),
+            'id' => $this->strId,
+            'input_name' => $this->multiple ? sprintf('%s[]', $this->strName) : $this->strName,
+            'name' => $this->strName,
+            'results' => $results,
+            'sortable' => $this->isSortable,
+        ]);
     }
 
     protected function getResults(): array
@@ -254,7 +211,7 @@ class TableLookupWizard extends Widget
         $objStatement = Database::getInstance()->prepare(implode(' ', $this->arrQueryProcedure));
 
         // Apply the limit only for the search results and not the current values
-        if ($this->blnIsAjaxRequest && Input::get('keywords')) {
+        if ($this->isAjaxRequest && Input::get('keywords')) {
             $objStatement->limit($this->intLimit + 1);
         }
 
@@ -265,9 +222,10 @@ class TableLookupWizard extends Widget
             $strKey = $arrRow[$this->foreignTable.'_id'];
             $arrResults[$strKey]['rowId'] = $arrRow[$this->foreignTable.'_id'];
             $arrResults[$strKey]['rawData'] = $arrRow;
+            $arrResults[$strKey]['isChecked'] = false;
 
             // Mark checked if not ajax call
-            if (!$this->blnIsAjaxRequest) {
+            if (!$this->isAjaxRequest) {
                 $arrResults[$strKey]['isChecked'] = self::optionChecked($arrRow[$this->foreignTable.'_id'], $this->varValue);
             }
 
@@ -279,6 +237,11 @@ class TableLookupWizard extends Widget
         }
 
         return $arrResults;
+    }
+
+    protected function getSearchFields(): array
+    {
+        return $this->arrSearchFields ?: $this->arrListFields;
     }
 
     /**
@@ -303,31 +266,35 @@ class TableLookupWizard extends Widget
     protected function prepareJoins(): void
     {
         foreach ($this->arrJoins as $k => $v) {
-            $this->arrQueryProcedure[] = \sprintf('%s %s ON %s.%s = %s.%s', $v['type'], $k, $k, $v['jkey'], $this->foreignTable, $v['fkey']);
+            $this->arrQueryProcedure[] = \sprintf('%s %s ON %s.%s = %s.%s', $v['type'], $k, $k, $v['joinKey'], $this->foreignTable, $v['foreignKey']);
         }
     }
 
     /**
      * Prepares the WHERE statement.
      */
-    protected function prepareWhere(): void
+    protected function prepareWhere(array $extra = []): void
     {
         $arrKeywords = StringUtil::trimsplit(' ', Input::get('keywords'));
         $varData = Input::get($this->strName);
+
+        if ([] !== $extra) {
+            $this->arrWhereProcedure = [...$this->arrWhereProcedure, ...$extra];
+        }
 
         // Handle keywords
         foreach ($arrKeywords as $strKeyword) {
             if (!$strKeyword) {
                 continue;
             }
-            $this->arrWhereProcedure[] = '('.implode(' LIKE ? OR ', $this->arrSearchFields).' LIKE ?)';
-            $this->arrWhereValues = array_merge($this->arrWhereValues, array_fill(0, \count($this->arrSearchFields), '%'.$strKeyword.'%'));
+            $this->arrWhereProcedure[] = '('.implode(' LIKE ? OR ', $this->getSearchFields()).' LIKE ?)';
+            $this->arrWhereValues = array_merge($this->arrWhereValues, array_fill(0, \count($this->getSearchFields()), '%'.$strKeyword.'%'));
         }
 
         // Filter those that have already been chosen
-        if ('checkbox' === $this->fieldType && !empty($varData) && \is_array($varData)) {
+        if ($this->multiple && !empty($varData) && \is_array($varData)) {
             $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', array_map('intval', $varData)).')';
-        } elseif ('radio' === $this->fieldType && '' !== $varData) {
+        } elseif (!$this->multiple && '' !== $varData) {
             $this->arrWhereProcedure[] = $this->foreignTable.'.id!='.(int) $varData;
         }
 
@@ -348,8 +315,8 @@ class TableLookupWizard extends Widget
      */
     protected function prepareOrderBy(): void
     {
-        if ($this->sqlOrderBy && $this->blnEnableSorting) {
-            throw new \RuntimeException('You cannot use "enableSorting" and a custom "ORDER BY" query part at the same time!');
+        if ($this->sqlOrderBy && $this->isSortable) {
+            throw new \RuntimeException('You cannot use "isSortable" and a custom "ORDER BY" query part at the same time!');
         }
 
         if ($this->sqlOrderBy) {
@@ -357,7 +324,7 @@ class TableLookupWizard extends Widget
         }
 
         // The sorting of the values has only be done on the initial (= not the ajax) request
-        if ($this->blnEnableSorting && !$this->blnIsAjaxRequest) {
+        if ($this->isSortable && !$this->isAjaxRequest) {
             $this->arrQueryProcedure[] = 'ORDER BY '.Database::getInstance()->findInSet($this->foreignTable.'.id', $this->value);
         }
     }
@@ -388,27 +355,24 @@ class TableLookupWizard extends Widget
         }
     }
 
-    /**
-     * Get formatted column labels.
-     */
-    protected function getColumnLabels(): array
+    protected function getHeaderFields(): array
     {
-        $arrLabels = [];
+        $headerFields = [];
         $count = 0;
 
-        foreach ($this->arrListFields as $strField) {
+        foreach ($this->arrListFields as $field) {
             // Use a custom label
-            if (\count($this->customLabels) > 0) {
-                $label = $this->customLabels[$count++];
+            if (\count($this->headerFields) > 0) {
+                $label = $this->headerFields[$count++];
             } else {
                 // Get the label from DCA
-                [$strTable, $strColumn] = explode('.', $strField);
-                $label = System::getContainer()->get(Formatter::class)->dcaLabel($strTable, $strColumn);
+                [$table, $column] = explode('.', $field);
+                $label = System::getContainer()->get(Formatter::class)->dcaLabel($table, $column);
             }
 
-            $arrLabels[StringUtil::standardize($strField)]['label'] = $label;
+            $headerFields[StringUtil::standardize($field)] = $label;
         }
 
-        return $arrLabels;
+        return $headerFields;
     }
 }

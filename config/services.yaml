@@ -1,0 +1,8 @@
+services:
+    _defaults:
+        autoconfigure: true
+        autowire: true
+
+    Terminal42\TableLookupWizardBundle\:
+        resource: ../src/
+        exclude: ../src/Widget

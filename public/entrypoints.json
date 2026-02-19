@@ -1,0 +1,12 @@
+{
+  "entrypoints": {
+    "tablelookupwizard": {
+      "css": [
+        "/bundles/terminal42tablelookupwizard/tablelookupwizard.b1302794.css"
+      ],
+      "js": [
+        "/bundles/terminal42tablelookupwizard/tablelookupwizard.129db3f8.js"
+      ]
+    }
+  }
+}

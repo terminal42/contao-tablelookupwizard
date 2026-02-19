@@ -25,9 +25,10 @@
         "source": "https://github.com/terminal42/contao-tablelookupwizard"
     },
     "require": {
-        "php": "^7.4 || ^8.0",
-        "contao/core-bundle": "^4.13 || ^5.0",
-        "codefog/contao-haste": "^5.0"
+        "php": "^8.3",
+        "contao/core-bundle": "^5.7",
+        "codefog/contao-haste": "^5.2",
+        "symfony/asset": "^7.4"
     },
     "require-dev": {
         "contao/manager-plugin": "^2.0",

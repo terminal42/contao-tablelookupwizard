@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Terminal42\TableLookupWizardBundle\Widget;
 
 use Codefog\HasteBundle\Formatter;
-use Contao\Backend;
-use Contao\BackendTemplate;
 use Contao\Controller;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\Database;
@@ -15,11 +13,11 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @property boolean $multiple
+ * @property bool   $multiple
+ * @property bool   $searchMatchAll
  * @property string $foreignTable
  * @property string $sqlWhere
  * @property string $sqlOrderBy
@@ -33,37 +31,50 @@ class TableLookupWizard extends Widget
 
     protected $strTemplate = 'be_widget';
 
-    /**
-     * Check if this is an ajax request.
-     */
     protected bool $isAjaxRequest = false;
 
-    /**
-     * SQL search operator.
-     */
-    protected string $strOperator = ' OR ';
-
-    /**
-     * Enable drag n drop sorting.
-     */
     protected bool $isSortable = false;
 
+    /**
+     * @var array<string>
+     */
     protected array $arrSearchFields = [];
 
+    /**
+     * @var array<string>
+     */
     protected array $arrListFields = [];
 
+    /**
+     * @var array<array<string, string>>
+     */
     protected array $arrJoins = [];
 
+    /**
+     * @var array<string>
+     */
     protected array $arrQueryProcedure = [];
 
+    /**
+     * @var array<string>
+     */
     protected array $arrQueryValues = [];
 
+    /**
+     * @var array<string>
+     */
     protected array $arrWhereProcedure = [];
 
+    /**
+     * @var array<int|string>
+     */
     protected array $arrWhereValues = [];
 
     protected int $intLimit = 30;
 
+    /**
+     * @var array<string>
+     */
     protected array $headerFields = [];
 
     public function __set($strKey, $varValue): void
@@ -92,16 +103,8 @@ class TableLookupWizard extends Widget
                 parent::__set($strKey, $varValue);
                 break;
 
-            case 'searchMatchAll':
-                $this->strOperator = $varValue ? ' AND ' : ' OR ';
-                break;
-
             case 'mandatory':
                 $this->arrConfiguration['mandatory'] = (bool) $varValue;
-                break;
-
-            case 'disableJavascriptFallback':
-                $this->blnEnableFallback = !$varValue;
                 break;
 
             case 'isSortable':
@@ -153,22 +156,28 @@ class TableLookupWizard extends Widget
 
         $ids = StringUtil::deserialize($this->varValue, true);
 
-        if (empty($ids) || !is_array($ids)) {
+        if (empty($ids) || !\is_array($ids)) {
             $ids = [0];
         }
 
-        return System::getContainer()->get('twig')->render(sprintf('@Contao/%s.html.twig', $this->customTpl ?: 'backend/widget/tablelookupwizard'), [
-            'css_class' => $this->strClass,
-            'header_fields' => $this->getHeaderFields(),
-            'id' => $this->strId,
-            'multiple' => $this->multiple,
-            'name' => $this->strName,
-            'records' => $this->getRecords(where: [sprintf('%s.id IN (%s)', $this->foreignTable, implode(',', $ids))]),
-            'search_label' => $this->searchLabel,
-            'sortable' => $this->isSortable,
-        ]);
+        return System::getContainer()->get('twig')->render(
+            \sprintf('@Contao/%s.html.twig', $this->customTpl ?: 'backend/widget/tablelookupwizard'),
+            [
+                'css_class' => $this->strClass,
+                'header_fields' => $this->getHeaderFields(),
+                'id' => $this->strId,
+                'multiple' => $this->multiple,
+                'name' => $this->strName,
+                'records' => $this->getRecords(where: [\sprintf('%s.id IN (%s)', $this->foreignTable, implode(',', $ids))]),
+                'search_label' => $this->searchLabel,
+                'sortable' => $this->isSortable,
+            ],
+        );
     }
 
+    /**
+     * @param array<string> $where
+     */
     public function getRecords(array $where = []): string
     {
         $this->prepareSelect();
@@ -192,19 +201,25 @@ class TableLookupWizard extends Widget
             $hasMoreResults = true;
         }
 
-        return System::getContainer()->get('twig')->render(sprintf('@Contao/%s.html.twig', $this->customRecordsTpl ?: 'backend/widget/tablelookupwizard_records'), [
-            'button_add' => Image::getUrl('new.svg'),
-            'button_remove' => Image::getUrl('delete.svg'),
-            'has_more_results' => $hasMoreResults,
-            'header_fields' => $this->getHeaderFields(),
-            'id' => $this->strId,
-            'input_name' => $this->multiple ? sprintf('%s[]', $this->strName) : $this->strName,
-            'name' => $this->strName,
-            'results' => $results,
-            'sortable' => $this->isSortable,
-        ]);
+        return System::getContainer()->get('twig')->render(
+            \sprintf('@Contao/%s.html.twig', $this->customRecordsTpl ?: 'backend/widget/tablelookupwizard_records'),
+            [
+                'button_add' => Image::getUrl('new.svg'),
+                'button_remove' => Image::getUrl('delete.svg'),
+                'has_more_results' => $hasMoreResults,
+                'header_fields' => $this->getHeaderFields(),
+                'id' => $this->strId,
+                'input_name' => $this->multiple ? \sprintf('%s[]', $this->strName) : $this->strName,
+                'name' => $this->strName,
+                'results' => $results,
+                'sortable' => $this->isSortable,
+            ],
+        );
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     protected function getResults(): array
     {
         $arrResults = [];
@@ -216,9 +231,6 @@ class TableLookupWizard extends Widget
         }
 
         $objResults = $objStatement->execute(...$this->arrQueryValues);
-
-        /** @var Formatter $formatter */
-        $formatter = System::getContainer()->get(Formatter::class);
 
         while ($objResults->next()) {
             $arrRow = $objResults->row();
@@ -235,13 +247,16 @@ class TableLookupWizard extends Widget
             foreach ($this->arrListFields as $strField) {
                 [$strTable, $strColumn] = explode('.', $strField);
                 $strFieldKey = str_replace('.', '_', $strField);
-                $arrResults[$strKey]['formattedData'][$strFieldKey] = $formatter->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
+                $arrResults[$strKey]['formattedData'][$strFieldKey] = $this->getFormatter()->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
             }
         }
 
         return $arrResults;
     }
 
+    /**
+     * @return array<string>
+     */
     protected function getSearchFields(): array
     {
         return $this->arrSearchFields ?: $this->arrListFields;
@@ -275,6 +290,8 @@ class TableLookupWizard extends Widget
 
     /**
      * Prepares the WHERE statement.
+     *
+     * @param array<string> $extra
      */
     protected function prepareWhere(array $extra = []): void
     {
@@ -290,7 +307,8 @@ class TableLookupWizard extends Widget
             if (!$strKeyword) {
                 continue;
             }
-            $this->arrWhereProcedure[] = '('.implode(' LIKE ? OR ', $this->getSearchFields()).' LIKE ?)';
+
+            $this->arrWhereProcedure[] = '('.implode(\sprintf(' LIKE ? %s ', $this->searchMatchAll ? 'AND' : 'OR'), $this->getSearchFields()).' LIKE ?)';
             $this->arrWhereValues = array_merge($this->arrWhereValues, array_fill(0, \count($this->getSearchFields()), '%'.$strKeyword.'%'));
         }
 
@@ -346,6 +364,8 @@ class TableLookupWizard extends Widget
      * Ensures that the columns are all aliased
      * If there's no alias passed in, it will automatically treat it as a
      * column of the foreignTable.
+     *
+     * @param array{int|string, string} $arrFields
      */
     protected function ensureColumnAliases(array &$arrFields): void
     {
@@ -358,6 +378,9 @@ class TableLookupWizard extends Widget
         }
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function getHeaderFields(): array
     {
         $headerFields = [];
@@ -370,12 +393,17 @@ class TableLookupWizard extends Widget
             } else {
                 // Get the label from DCA
                 [$table, $column] = explode('.', $field);
-                $label = System::getContainer()->get(Formatter::class)->dcaLabel($table, $column);
+                $label = $this->getFormatter()->dcaLabel($table, $column);
             }
 
             $headerFields[StringUtil::standardize($field)] = $label;
         }
 
         return $headerFields;
+    }
+
+    protected function getFormatter(): Formatter
+    {
+        return System::getContainer()->get(Formatter::class);
     }
 }

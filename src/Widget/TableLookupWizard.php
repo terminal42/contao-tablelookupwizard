@@ -217,6 +217,9 @@ class TableLookupWizard extends Widget
 
         $objResults = $objStatement->execute(...$this->arrQueryValues);
 
+        /** @var Formatter $formatter */
+        $formatter = System::getContainer()->get(Formatter::class);
+
         while ($objResults->next()) {
             $arrRow = $objResults->row();
             $strKey = $arrRow[$this->foreignTable.'_id'];
@@ -232,7 +235,7 @@ class TableLookupWizard extends Widget
             foreach ($this->arrListFields as $strField) {
                 [$strTable, $strColumn] = explode('.', $strField);
                 $strFieldKey = str_replace('.', '_', $strField);
-                $arrResults[$strKey]['formattedData'][$strFieldKey] = System::getContainer()->get(Formatter::class)->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
+                $arrResults[$strKey]['formattedData'][$strFieldKey] = $formatter->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
             }
         }
 

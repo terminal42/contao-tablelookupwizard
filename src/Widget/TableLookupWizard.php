@@ -8,6 +8,7 @@ use Codefog\HasteBundle\Formatter;
 use Contao\Controller;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\Database;
+use Contao\DataContainer;
 use Contao\Image;
 use Contao\Input;
 use Contao\StringUtil;
@@ -230,6 +231,13 @@ class TableLookupWizard extends Widget
             $objStatement->limit($this->intLimit + 1);
         }
 
+        $dataContainer = null;
+
+        // Prepare the data container for formatter
+        if ($this->objDca instanceof DataContainer) {
+            $dataContainer = $this->objDca;
+        }
+
         $objResults = $objStatement->execute(...$this->arrQueryValues);
 
         while ($objResults->next()) {
@@ -247,7 +255,7 @@ class TableLookupWizard extends Widget
             foreach ($this->arrListFields as $strField) {
                 [$strTable, $strColumn] = explode('.', $strField);
                 $strFieldKey = str_replace('.', '_', $strField);
-                $arrResults[$strKey]['formattedData'][$strFieldKey] = $this->getFormatter()->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey]);
+                $arrResults[$strKey]['formattedData'][$strFieldKey] = $this->getFormatter()->dcaValue($strTable, $strColumn, $arrRow[$strFieldKey], $dataContainer);
             }
         }
 

@@ -28,7 +28,11 @@
         "php": "^8.3",
         "contao/core-bundle": "^5.7",
         "codefog/contao-haste": "^5.2",
-        "symfony/asset": "^7.4"
+        "symfony/asset": "^7.4",
+        "symfony/config": "^7.4",
+        "symfony/dependency-injection": "^7.4",
+        "symfony/http-foundation": "^7.4",
+        "symfony/http-kernel": "^7.4"
     },
     "require-dev": {
         "contao/manager-plugin": "^2.0",

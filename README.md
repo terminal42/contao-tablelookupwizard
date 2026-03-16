@@ -16,6 +16,17 @@ composer require terminal42/contao-tablelookupwizard
 
 ---
 
+## Version Compatibility
+
+Please choose the appropriate major version based on your Contao version:
+
+- **4.x** → for Contao **5.6 and below**
+- **5.x** → for Contao **5.7 and above**
+
+Make sure to select the correct major version to ensure compatibility with your Contao installation.
+
+---
+
 ## Basic Usage (DCA Example)
 
 ```php

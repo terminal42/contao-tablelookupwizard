@@ -4,4 +4,4 @@ services:
         autowire: true
 
     Terminal42\TableLookupWizardBundle\:
-        resource: '../src'
+        resource: ../src

@@ -78,6 +78,7 @@ class TableLookupWizard extends Widget
      */
     protected array $headerFields = [];
 
+    #[\Override]
     public function __set($strKey, $varValue): void
     {
         switch ($strKey) {
@@ -134,6 +135,7 @@ class TableLookupWizard extends Widget
         }
     }
 
+    #[\Override]
     public function validator($varInput)
     {
         if ($this->mandatory && !$varInput) {
@@ -322,7 +324,7 @@ class TableLookupWizard extends Widget
 
         // Filter those that have already been chosen
         if ($this->multiple && !empty($varData) && \is_array($varData)) {
-            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', array_map('intval', $varData)).')';
+            $this->arrWhereProcedure[] = $this->foreignTable.'.id NOT IN ('.implode(',', array_map(intval(...), $varData)).')';
         } elseif (!$this->multiple && '' !== $varData) {
             $this->arrWhereProcedure[] = $this->foreignTable.'.id!='.(int) $varData;
         }
@@ -378,7 +380,7 @@ class TableLookupWizard extends Widget
     protected function ensureColumnAliases(array &$arrFields): void
     {
         foreach ($arrFields as $k => $strField) {
-            if (str_contains($strField, '.')) {
+            if (str_contains((string) $strField, '.')) {
                 continue;
             }
 

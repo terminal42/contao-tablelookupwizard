@@ -25,6 +25,51 @@ Please choose the appropriate major version based on your Contao version:
 
 Make sure to select the correct major version to ensure compatibility with your Contao installation.
 
+### Supporting both versions simultaneously
+
+If your project needs to support both Contao 5.6 and 5.7+, you can allow both major
+versions using a version union constraint in your `composer.json`:
+```json
+"require": {
+    "terminal42/contao-tablelookupwizard": "^4.0 || ^5.0"
+}
+```
+
+Composer will then automatically install:
+- `4.x` when the project uses Contao ≤ 5.6
+- `5.x` when the project uses Contao ≥ 5.7
+
+No code changes are needed on your end — the correct version will be resolved
+based on the Contao version constraint in your own `composer.json`.
+
+---
+
+## Migrating from 4.x to 5.x
+
+Several DCA configuration properties were renamed or replaced in 5.x. The table below lists all breaking changes.
+
+### Configuration
+
+| Version 4.x          | Version 5.x                   | Notes                                                      |
+|----------------------|-------------------------------|------------------------------------------------------------|
+| `fieldType`          | `multiple`                    | `checkbox` → `multiple: true`, `radio` → `multiple: false` |
+| `customLabels`       | `headerFields`                | -                                                          |
+| `matchAllKeywords`   | `searchMatchAll`              | -                                                          |
+| `enableSorting`      | `isSortable`                  | Also requires `multiple: true` to be effective             |
+| `joins`              | `sqlJoins`                    | Inner keys also renamed, see below                         |
+| `joins.[table].jkey` | `sqlJoins.[table].joinKey`    | -                                                          |
+| `joins.[table].fkey` | `sqlJoins.[table].foreignKey` | -                                                          |
+| `customContentTpl`   | `customRecordsTpl`            | -                                                          |
+
+### Templates
+
+The default template names have also been renamed. If you have overridden any of the templates in your project, update them accordingly:
+
+| Version 4.x (.html5)                  | Version 5.x (.html.twig)                   |
+|---------------------------------------|--------------------------------------------|
+| `be_widget_tablelookupwizard`         | `backend/widget/tablelookupwizard`         |
+| `be_widget_tablelookupwizard_content` | `backend/widget/tablelookupwizard_records` |
+
 ---
 
 ## Basic Usage (DCA Example)

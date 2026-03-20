@@ -42,6 +42,37 @@ Composer will then automatically install:
 No code changes are needed on your end — the correct version will be resolved
 based on the Contao version constraint in your own `composer.json`.
 
+If you want to support both 4.x and 5.x simultaneously with a custom template, 
+you need to set `customTpl` dynamically at runtime rather than statically in the DCA, 
+since the template name changed between versions. For example, you can use an [attributes callback](https://docs.contao.org/5.x/dev/reference/dca/callbacks/#fields-field-attributes)
+to detect the installed version and return the correct template name:
+
+```php
+<?php
+
+use Composer\InstalledVersions;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
+
+#[AsCallback('tl_my_table', 'fields.my_field.attributes')]
+class MyFieldAttributesListener
+{
+    public function __invoke(array $attributes): array
+    {
+        $isNewVersion = version_compare(InstalledVersions::getVersion('terminal42/contao-tablelookupwizard'), '5.0', '>=');
+
+        if ($newNewVersion) {
+            $attributes['eval']['customTpl'] = 'backend/widget/custom_tablelookupwizard';
+            $attributes['eval']['customRecordsTpl'] = 'backend/widget/custom_tablelookupwizard_records';
+        } else {
+            $attributes['eval']['customTpl'] = 'be_widget_tablelookupwizard_content_custom';
+            $attributes['eval']['customContentTpl'] = 'be_widget_tablelookupwizard_content_custom';
+        }
+
+        return $attributes;
+    }
+}
+```
+
 ---
 
 ## Migrating from 4.x to 5.x

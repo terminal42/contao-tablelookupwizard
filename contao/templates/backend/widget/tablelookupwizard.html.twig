@@ -1,0 +1,102 @@
+{% trans_default_domain 'contao_default' %}
+
+{% set widget_attributes = attrs()
+    .addClass(['tablelookupwizard', css_class])
+    .set('id', 'ctrl_%s'|format(id))
+    .set('data-controller', 'terminal42--tablelookupwizard')
+    .set('data-terminal42--tablelookupwizard-multiple-value', multiple ? 'true' : 'false')
+    .set('data-terminal42--tablelookupwizard-name-value', name)
+%}
+
+{% block widget %}
+    <div{{ widget_attributes }}>
+        {% block selection_wrapper %}
+            <div class="tablelookupwizard__selection">
+                {% block selection_records %}
+                    <div class="tablelookupwizard__records">
+                        <table class="tl_listing">
+                            <thead>
+                            <tr>
+                                {% if sortable %}
+                                    <th class="tl_folder_tlist tablelookupwizard__records-operation"></th>
+                                {% endif %}
+
+                                <th class="tl_folder_tlist tablelookupwizard__records-operation"></th>
+
+                                {% for header_field in header_fields %}
+                                    <th class="tl_folder_tlist">{{ header_field }}</th>
+                                {% endfor %}
+                            </tr>
+                            </thead>
+
+                            {% set tbody_attributes = attrs()
+                                .addClass('sortable')
+                                .set('data-controller', 'contao--sortable')
+                                .set('data-contao--sortable-handle-value', '.drag-handle')
+                                .set('data-terminal42--tablelookupwizard-target', 'selection')
+                            %}
+
+                            <tbody{{ tbody_attributes }}>
+                                {{ records|raw }}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endblock %}
+
+                {% block selection_empty %}
+                    <div class="tablelookupwizard__empty">
+                        {{ 'MSC.tlwNoValue'|trans }}
+                    </div>
+                {% endblock %}
+            </div>
+        {% endblock %}
+
+        {% block search_wrapper %}
+            <div class="tablelookupwizard__search" data-terminal42--tablelookupwizard-target="search">
+                {% block search_form %}
+                    <div class="tablelookupwizard__search-form">
+                        {% set search_label_attributes = attrs()
+                            .set('for', '%s-search'|format(id))
+                        %}
+                        <label{{ search_label_attributes }}>{{ searchLabel|default('MSC.searchLabel'|trans) }}:</label>
+
+                        {% set search_input_attributes = attrs()
+                            .addClass('tl_text')
+                            .set('id', '%s-search'|format(id))
+                            .set('type', 'text')
+                            .set('autocomplete', 'off')
+                            .set('data-action', 'input->terminal42--tablelookupwizard#search keydown.enter->terminal42--tablelookupwizard#preventSubmit')
+                        %}
+                        <input{{ search_input_attributes }}>
+                    </div>
+                {% endblock %}
+
+                <div class="tablelookupwizard__search-result">
+                    {% block search_records %}
+                        <div class="tablelookupwizard__records">
+                            <table class="tl_listing">
+                                <thead>
+                                <tr>
+                                    <th class="tl_folder_tlist"></th>
+
+                                    {% for header_field in header_fields %}
+                                        <th class="tl_folder_tlist">{{ header_field }}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+
+                                <tbody data-terminal42--tablelookupwizard-target="results"></tbody>
+                            </table>
+                        </div>
+                    {% endblock %}
+
+                    {% block search_empty %}
+                        <div class="tablelookupwizard__empty">
+                            {{ 'MSC.tlwNoResults'|trans }}
+                        </div>
+                    {% endblock %}
+                </div>
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

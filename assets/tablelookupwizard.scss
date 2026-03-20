@@ -1,0 +1,136 @@
+:root {
+    --tablelookupwizard-info-bg: url('./info.svg');
+    --tablelookupwizard-loading-bg: url('/system/themes/flexible/icons/loading.svg');
+}
+
+html[data-color-scheme='dark'] {
+    --tablelookupwizard-info-bg: url('./info--dark.svg');
+    --tablelookupwizard-loading-bg: url('/system/themes/flexible/icons/loading--dark.svg');
+}
+
+.tablelookupwizard {
+    margin-bottom: 5px;
+    margin-top: 5px;
+
+    &__empty {
+        margin: 0;
+        padding: 8px 10px 8px 30px;
+        background: var(--body-bg) var(--tablelookupwizard-info-bg) no-repeat 11px center;
+        color: var(--text);
+        line-height: 1.3;
+    }
+
+    &__records {
+        th {
+            text-align: left;
+        }
+
+        .tl_folder_tlist:first-child,
+        .tl_folder_tlist:last-child {
+            --border-radius: 0;
+        }
+
+        &-operation {
+            width: 1%;
+            min-width: 1%;
+            white-space: nowrap;
+        }
+
+        &-more td {
+            padding-left: 30px;
+            background: var(--body-bg) var(--tablelookupwizard-info-bg) no-repeat 11px center;
+        }
+    }
+
+    &__selection {
+        .tablelookupwizard__records {
+            display: none;
+        }
+
+        .tablelookupwizard__button-add {
+            display: none;
+        }
+
+        // Has selected values
+        &:has(.tablelookupwizard__records tbody tr) {
+            .tablelookupwizard__empty {
+                display: none;
+            }
+
+            .tablelookupwizard__records {
+                display: block;
+            }
+        }
+    }
+
+    &__search {
+        margin-top: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius);
+
+        .tablelookupwizard__search-result {
+            display: none;
+
+            td:has(button.drag-handle) {
+                display: none;
+            }
+        }
+
+        &.fetched {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+
+            .tablelookupwizard__search-result {
+                display: block;
+            }
+        }
+
+        &-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+
+            input {
+                margin: 0;
+                max-width: 300px;
+                font-weight: 300;
+
+                &.loading {
+                    background-image: var(--tablelookupwizard-loading-bg);
+                    background-repeat: no-repeat;
+                    background-size: auto calc(100% - 10px);
+                    background-position: calc(100% - 5px) center;
+                }
+            }
+        }
+
+        .tablelookupwizard__records {
+            display: none;
+            border-top: 1px solid var(--border);
+            max-height: 300px;
+            overflow-y: auto;
+
+            thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+            }
+        }
+
+        .tablelookupwizard__button-remove {
+            display: none;
+        }
+
+        // Has records
+        &:has(.tablelookupwizard__records tbody tr) {
+            .tablelookupwizard__empty {
+                display: none;
+            }
+
+            .tablelookupwizard__records {
+                display: block;
+            }
+        }
+    }
+}

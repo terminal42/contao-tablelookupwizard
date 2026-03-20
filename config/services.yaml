@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        autoconfigure: true
+
+    Terminal42\TableLookupWizardBundle\EventListener\AddAssetsListener:
+        arguments:
+            - "@assets.packages"
+            - "@request_stack"
+            - "@contao.routing.scope_matcher"

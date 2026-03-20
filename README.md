@@ -1,79 +1,262 @@
-tablelookupwizard Contao Extension
-==========================
+# tablelookupwizard Contao Extension
 
-This widget allows you to lookup a foreign table and select records from it. Its primary advantage is that not all database records are listed, so it is very useful if you have a large set of records.
+A backend widget for Contao that allows editors to search and select records from a foreign database table without loading the entire dataset.
 
-How to use:
+It is specifically designed for large datasets where a traditional `select`, `checkboxWizard`, or static select field would be inefficient or unusable.
+
+---
+
+## Installation
+
+Install via Composer:
+
+```bash
+composer require terminal42/contao-tablelookupwizard
+```
+
+---
+
+## Version Compatibility
+
+Please choose the appropriate major version based on your Contao version:
+
+- **4.x** → for Contao **5.6 and below**
+- **5.x** → for Contao **5.7 and above**
+
+Make sure to select the correct major version to ensure compatibility with your Contao installation.
+
+### Supporting both versions simultaneously
+
+If your project needs to support both Contao 5.6 and 5.7+, you can allow both major
+versions using a version union constraint in your `composer.json`:
+```json
+"require": {
+    "terminal42/contao-tablelookupwizard": "^4.0 || ^5.0"
+}
+```
+
+Composer will then automatically install:
+- `4.x` when the project uses Contao ≤ 5.6
+- `5.x` when the project uses Contao ≥ 5.7
+
+No code changes are needed on your end — the correct version will be resolved
+based on the Contao version constraint in your own `composer.json`.
+
+If you want to support both 4.x and 5.x simultaneously with a custom template, 
+you need to set `customTpl` dynamically at runtime rather than statically in the DCA, 
+since the template name changed between versions. For example, you can use an [attributes callback](https://docs.contao.org/5.x/dev/reference/dca/callbacks/#fields-field-attributes)
+to detect the installed version and return the correct template name:
 
 ```php
-// DCA definition
-'fieldname' => array
-(
-    'label'                   => &$GLOBALS['TL_LANG']['tl_tablename']['fieldname'],
-    'inputType'               => 'tableLookup',
+<?php
 
-    'eval'                    => array
-    (
-        // The foreign table you want to search in
-        'foreignTable'        => 'tl_foreign_tablename',
+use Composer\InstalledVersions;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 
-        // Define "checkbox" for multi selects and "radio" for single selects
-        'fieldType'           => 'checkbox',
+#[AsCallback('tl_my_table', 'fields.my_field.attributes')]
+class MyFieldAttributesListener
+{
+    public function __invoke(array $attributes): array
+    {
+        $isNewVersion = version_compare(InstalledVersions::getVersion('terminal42/contao-tablelookupwizard'), '5.0', '>=');
 
-        // A list of fields to be displayed in the table
-        'listFields'          => array('field1', 'field2', 'tl_my_superb_join_table.field1'),
+        if ($newNewVersion) {
+            $attributes['eval']['customTpl'] = 'backend/widget/custom_tablelookupwizard';
+            $attributes['eval']['customRecordsTpl'] = 'backend/widget/custom_tablelookupwizard_records';
+        } else {
+            $attributes['eval']['customTpl'] = 'be_widget_tablelookupwizard_content_custom';
+            $attributes['eval']['customContentTpl'] = 'be_widget_tablelookupwizard_content_custom';
+        }
 
-        // Custom labels to be displayed in the table header
-        'customLabels'        => array('Label 1', 'Label 2', 'Label 3'),
-
-        // Fields that can be searched for the keyword
-        'searchFields'        => array('field1', 'tl_my_superb_join_table.field1'),
-
-        // Adds multiple left joins to the sql statement (optional)
-        'joins'               => array
-        (
-            // Defines the join table
-            'tl_my_superb_join_table' => array
-            (
-                // Join type (e.g. INNER JOIN, LEFT JOIN, RIGHT JOIN)
-                'type' => 'LEFT JOIN',
-
-                // Key of the join table
-                'jkey' => 'pid',
-
-                // Key of the foreign table
-                'fkey' => 'id'
-            )
-        ),
-
-        // Find every given keyword
-        'matchAllKeywords'    => true
-
-        // Custom additional WHERE conditions
-        'sqlWhere'            => 'someother=condition',
-
-        // Custom ORDER BY - note that when you use "enableSorting" you cannot set this value!
-        'sqlOrderBy'            => 'someColumn',
-
-        // Adds a "GROUP BY" to the sql statement (optional)
-        'sqlGroupBy'          => 'tl_my_superb_join_table.fid',
-        
-        // Adds a "LIMIT" statement to the query
-        'sqlLimit'            => 100, // default is 30
-
-        // The search button label
-        'searchLabel'         => 'Search my table now!',
-
-        // Enables drag n drop sorting of chosen values
-        'enableSorting'       => true,
-        
-        // Custom templates, so you don't need to have your own widget for
-        // smaller adjustments
-        'customTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard
-        'customContentTpl' => 'be_widget_tablelookupwizard_content_custom', // Default be_widget_tablelookupwizard_content
-    ),
-
-    // SQL field definition
-    'sql'                     => "blob NULL"
-);
+        return $attributes;
+    }
+}
 ```
+
+---
+
+## Migrating from 4.x to 5.x
+
+Several DCA configuration properties were renamed or replaced in 5.x. The table below lists all breaking changes.
+
+### Configuration
+
+| Version 4.x          | Version 5.x                   | Notes                                                      |
+|----------------------|-------------------------------|------------------------------------------------------------|
+| `fieldType`          | `multiple`                    | `checkbox` → `multiple: true`, `radio` → `multiple: false` |
+| `customLabels`       | `headerFields`                | -                                                          |
+| `matchAllKeywords`   | `searchMatchAll`              | -                                                          |
+| `enableSorting`      | `isSortable`                  | Also requires `multiple: true` to be effective             |
+| `joins`              | `sqlJoins`                    | Inner keys also renamed, see below                         |
+| `joins.[table].jkey` | `sqlJoins.[table].joinKey`    | -                                                          |
+| `joins.[table].fkey` | `sqlJoins.[table].foreignKey` | -                                                          |
+| `customContentTpl`   | `customRecordsTpl`            | -                                                          |
+
+### Templates
+
+The default template names have also been renamed. If you have overridden any of the templates in your project, update them accordingly:
+
+| Version 4.x (.html5)                  | Version 5.x (.html.twig)                   |
+|---------------------------------------|--------------------------------------------|
+| `be_widget_tablelookupwizard`         | `backend/widget/tablelookupwizard`         |
+| `be_widget_tablelookupwizard_content` | `backend/widget/tablelookupwizard_records` |
+
+---
+
+## Basic Usage (DCA Example)
+
+```php
+'myField' => [
+    'inputType' => 'tableLookup',
+    'eval' => [
+        'foreignTable' => 'tl_news',
+        'listFields'   => ['headline'],
+    ],
+    'sql' => ['type' => \Doctrine\DBAL\Types\Types::INTEGER, 'unsigned' => true, 'default' => 0],
+],
+```
+
+---
+
+## Configuration Reference
+
+### Required Options
+
+| Option         | Type       | Default | Description                                                                       |
+|----------------|------------|---------|-----------------------------------------------------------------------------------|
+| `foreignTable` | `string`   | -       | Base database table used for querying records.                                    |
+| `listFields`   | `string[]` | -       | Fields displayed in the result table. Use fully qualified names when using joins. |
+
+### Selection Options
+
+| Option         | Type       | Default | Description                                                         |
+|----------------|------------|---------|---------------------------------------------------------------------|
+| `multiple`     | `bool`     | `false` | Allows selecting multiple records.                                  |
+| `isSortable`   | `bool`     | `false` | Enables drag & drop sorting. Only effective when `multiple = true`. |
+| `headerFields` | `string[]` | `[]`    | Custom column header labels. Must match `listFields` length.        |
+
+### Search Options
+
+| Option           | Type       | Default    | Description                                                         |
+|------------------|------------|------------|---------------------------------------------------------------------|
+| `searchFields`   | `string[]` | `[]`       | Fields used for keyword searching. Defaults to `listFields`.        |
+| `searchMatchAll` | `bool`     | `false`    | If true, all keywords must match (AND). Otherwise OR logic is used. |
+| `searchLabel`    | `string`   | `"Search"` | Label for the search button.                                        |
+
+### Template Options
+
+| Option             | Type     | Default                                    | Description                              |
+|--------------------|----------|--------------------------------------------|------------------------------------------|
+| `customTpl`        | `string` | `backend/widget/tablelookupwizard`         | Custom backend widget template.          |
+| `customRecordsTpl` | `string` | `backend/widget/tablelookupwizard_records` | Template for rendering selected records. |
+
+
+### SQL Options
+
+| Option       | Type     | Default | Description                                                               |
+|--------------|----------|---------|---------------------------------------------------------------------------|
+| `sqlWhere`   | `string` | `''`    | Additional SQL condition appended to WHERE (without the `WHERE` keyword). |
+| `sqlOrderBy` | `string` | `''`    | Adds ORDER BY clause to search results.                                   |
+| `sqlGroupBy` | `string` | `''`    | Adds GROUP BY clause.                                                     |
+| `sqlLimit`   | `int`    | `30`    | Maximum number of result rows displayed.                                  |
+| `sqlJoins`   | `array`  | `[]`    | Defines SQL joins to make related tables available.                       |
+
+#### Join Parameters
+
+| Parameter    | Type     | Description                                              |
+|--------------|----------|----------------------------------------------------------|
+| `type`       | `string` | SQL join type (`INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`). |
+| `joinKey`    | `string` | Column on the base table (`foreignTable`).               |
+| `foreignKey` | `string` | Column on the joined table.                              |
+
+After joining, fields can be referenced as:
+
+```text
+tl_news_archive.title
+```
+
+---
+
+## Full Configuration Example
+
+```php
+'myField' => [
+    'inputType' => 'tableLookup',
+    'eval' => [
+
+        // Required
+        'foreignTable' => 'tl_news',
+        'listFields'   => [
+            'tl_news.headline',
+            'tl_news.date',
+            'tl_news_archive.title',
+        ],
+
+        // Selection behavior
+        'multiple'     => true,
+        'isSortable'   => true,
+
+        'headerFields' => [
+            'Headline',
+            'Date published',
+            'News archive',
+        ],
+
+        // Search behavior
+        'searchFields'   => [
+            'tl_news.headline',
+            'tl_news_archive.title',
+        ],
+        'searchMatchAll' => true,
+        'searchLabel'    => 'Search records',
+
+        // Template overrides
+        'customTpl'        => 'backend/widget/custom_tablelookupwizard',
+        'customRecordsTpl' => 'backend/widget/custom_tablelookupwizard_records',
+
+        // SQL customization
+        'sqlWhere'   => 'tl_news.protected=1',
+        'sqlOrderBy' => 'tl_news.date DESC',
+        'sqlGroupBy' => 'tl_news.pid',
+        'sqlLimit'   => 100,
+        'sqlJoins'   => [
+            'tl_news_archive' => [
+                'type'       => 'INNER JOIN',
+                'joinKey'    => 'pid',
+                'foreignKey' => 'id',
+            ],
+        ],
+    ],
+    'sql' => ['type' => \Doctrine\DBAL\Types\Types::BLOB, 'notnull' => false],
+],
+```
+
+---
+
+## Data Storage
+
+Storage behavior:
+
+- `multiple => false` → single ID stored
+- `multiple => true` → serialized array of IDs stored
+
+The DCA field should use:
+
+```php
+// multiple => false
+'sql' => ['type' => \Doctrine\DBAL\Types\Types::INTEGER, 'unsigned' => true, 'default' => 0],
+
+// multiple => true
+'sql' => ['type' => \Doctrine\DBAL\Types\Types::BLOB, 'notnull' => false],
+```
+
+Adjust if your implementation differs.
+
+---
+
+## Best Practices
+
+- Use fully qualified column names when joins are present.
+- Ensure `headerFields` count matches `listFields`.
+- Avoid unsanitized input inside `sqlWhere`.
+- Index searchable fields for performance.

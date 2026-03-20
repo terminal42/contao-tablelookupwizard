@@ -16,8 +16,7 @@ class Plugin implements BundlePluginInterface
     {
         return [
             (new BundleConfig(Terminal42TableLookupWizardBundle::class))
-                ->setLoadAfter([ContaoCoreBundle::class])
-                ->setReplace(['tablelookupwizard']),
+                ->setLoadAfter([ContaoCoreBundle::class]),
         ];
     }
 }
